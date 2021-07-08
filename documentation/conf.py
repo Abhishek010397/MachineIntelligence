@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = 'MODBUS'
-copyright = '2021'
-author = 'machineintelligence.com'
+copyright = '2021, i4sens.com'
+author = 'i4sens.com'
 
 # The short X.Y version
 version = '0.0.3'

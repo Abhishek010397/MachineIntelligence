@@ -17,17 +17,17 @@ class Modbus:
     def __init__(self, param):
         device = Modbusconfigjsondecoder(param)
         #device_setting = []
-        device_setting = [device.getdevicesettings()]
+        device_setting = device.getdevicesettings()
         print(device_setting)
         self.response = param
-'''Get Json Objects Filtered Out Here
+    '''Get Json Objects Filtered Out Here'''
 
     def modbus_block_read(self, device_setting, input_list):
         try:
             DEVICE_CONNECTION = device_setting.connect()
             if (DEVICE_CONNECTION == True):
                 
-                call pymodbus read register_function(input_list_decoded)
+                '''call pymodbus read register_function(input_list_decoded)'''
                 
         except Exception as e:
             print(e)
@@ -37,4 +37,4 @@ class Modbus:
 
     def modbus_block_write(self):
         return 
-'''
+

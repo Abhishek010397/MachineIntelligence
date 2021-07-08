@@ -21,12 +21,8 @@ class Modbusconfigjsondecoder:
                         for k2,v2 in v.items():
                             if(k2 == "DeviceSettings"):
                                 value = v2[0]
-                                v = str(value).replace("{", "").replace("}", "").replace(":", "").replace("'","").replace(",","")
-                                arr = v.split()
-                                print("IPAddress:"+arr[1])
-                                print("Port:"+arr[3])
-                                print("UnitID:"+arr[5])
-                                return(arr[1],arr[3],arr[5])
+                                json_object = json.dumps(value, indent = 4)
+                                return json_object
 
         except Exception as e:
             print(e)
