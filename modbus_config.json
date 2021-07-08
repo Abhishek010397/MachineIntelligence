@@ -1,0 +1,80 @@
+{
+	"devicetype01": {
+		"DeviceName": "Sinexcel_batt_inv",
+		"ConnType": "TCP",
+		"DeviceInfoBlock": [{
+			"RegisterNumber": ["10001", "10002"],
+			"RegisterName": ["Model", "SerialNo"],
+			"RegisterType": ["Read", "Read"],
+			"DataType": ["String32", "String16"],
+			"Active": ["True", "True"]
+		}],
+		"UserDataBlock1": [{
+			"RegisterNumber": ["30001", "30002", "30020"],
+			"RegisterName": ["Voltage", "Current", "Power"],
+			"RegisterType": ["Read", "Read", "Write"],
+			"DataType": ["16 bit int", "32 bit int", "16 bit int"],
+			"Multiplier": ["1", "1", "1", "0.1"],
+			"Unit": ["V", "A", "W"],
+			"DataRangeMin": ["0", "-150", "-300"],
+			"DataRangeMax": ["600", "150", "300"],
+			"Active": ["True", "True"]
+		}]
+	},
+
+	"devicetype02": {
+		"DeviceName": "Pylontech_bms",
+		"ConnType": "RTU",
+		"DeviceInfoBlock": [{
+			"RegisterNumber": ["4096", "4101", "4106", "4107", "4108"],
+			"RegisterName": ["Vendor", "Device", "MainVersion", "InternalVersion", "PileCount"],
+			"RegisterType": ["Read", "Read", "Read", "Read", "Read"],
+			"DataType": ["ASCII", "ASCII", "hex16", "int16"],
+			"Active": ["True", "True"]
+		}],
+		"UserDataBlock1": [{
+			"RegisterNumber": ["4352", "4353", "4354", "4355", "4356"],
+			"RegisterName": ["BasicStatus", "ProtecStatus", "AlarmStatus", "Voltage", "Current"],
+			"RegisterType": ["Read", "Read", "Read", "Read", "Read"],
+			"DataType": ["int16", "int16", "int16", "int16", "int32"],
+			"Multiplier": ["1", "1", "1", "0.1", "0.01"],
+			"Unit": ["", "", "", "V", "A"],
+			"DataRangeMin": ["", "", ""],
+			"DataRangeMax": ["", "", ""],
+			"Active": ["True", "True", "True"]
+		}]
+	},
+
+	"device01": {
+
+		"DeviceID": "Sinexcel_batt_inv_01",
+		"DeviceType": "devicetype01",
+		"DeviceSettings": [{
+			"IPAddress": "192.168.1.131",
+			"Port": "502",
+			"UnitID": "1",
+			"path": "",
+			"BaudRate": "",
+			"Parity": "",
+			"StopBit": ""
+		}],
+		"PollingRate": "10 secs"
+	},
+	"device02": {
+
+		"DeviceID": "Pylontech_bms_01",
+		"DeviceType": "devicetype02",
+		"DeviceSettings": [{
+			"IPAddress": "",
+			"IPport": "",
+			"UnitID": "1",
+			"rtuPort": "/dev/ttyUSB0",
+			"BaudRate": "9600",
+			"Parity": "N",
+			"StopBits": "1",
+			"bytesize": "8",
+			"timeout": "3"
+		}],
+		"PollingRate": "10 secs"
+	}
+}
