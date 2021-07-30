@@ -57,6 +57,4 @@ class Decoder:
             return BinaryPayloadDecoder(payload, Endian)
             raise ParameterException('Invalid collection of registers supplied')
 
-""" instantiating the class """
-obj=Decoder()
 
