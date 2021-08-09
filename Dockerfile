@@ -4,7 +4,7 @@ ARG VERSION=0.0.0
 
 ENV PYTHONBUFFERED=1
 
-RUN mkdir sphinx-docs && cd sphinx-docs && sphinx-quickstart -q --ext-autodoc -p MODBUS -a i4sens.com 
+RUN mkdir sphinx-docs && cd sphinx-docs && sphinx-quickstart -q --ext-autodoc -p MODBUS -a example.com 
 
 RUN rm -f conf.py && rm -f index.rst 
 
