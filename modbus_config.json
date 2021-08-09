@@ -10,7 +10,7 @@
 			"Active": ["True", "True"] 
 		}],
 		"UserDataBlock1": [{
-			"RegisterNumber": ["30001", "30002", "30003"],
+			"RegisterNumber": ["750", "751", "752"], 
 			"RegisterName": ["Voltage", "Current", "Power"],
 			"RegisterType": ["Read", "Read", "Read"],
 			"DataType": ["16int", "16int", "16int"],
@@ -25,10 +25,10 @@
 			"RegisterName": ["ac_ov_trip_level_1", "ac_ov_trip_time_1", "ac_ov_trip_level_2"],
 			"RegisterType": ["ReadWrite", "ReadWrite", "ReadWrite"],
 			"DataType": ["16int", "16int", "16int"],
-			"Multiplier": ["1", "1", "1"],
+			"Multiplier": ["1.5", "1", "1"],
 			"Unit": ["V", "S", "V"],
 			"DataRangeMin": ["1.05", "0", "1.05"],
-			"DataRangeMax": ["1.2", "13", "1.2"],
+			"DataRangeMax": ["5", "13", "6"],
 			"Active": ["True", "True","True"]
 		}],
 		"ReadWriteBlock2": [{

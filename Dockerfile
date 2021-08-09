@@ -1,29 +1,27 @@
-FROM alpine:latest
+FROM 2307297/pymodbus:latest
 
 ARG VERSION=0.0.0
 
 ENV PYTHONBUFFERED=1
 
-RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
+RUN mkdir sphinx-docs && cd sphinx-docs && sphinx-quickstart -q --ext-autodoc -p MODBUS -a i4sens.com 
 
-RUN apk add make && apk add tree
+RUN rm -f conf.py && rm -f index.rst 
 
-RUN python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools
+RUN rm -rf source && mkdir sphinx-docs/source 
 
-RUN pip install sphinx-rtd-theme && pip install Sphinx 
+COPY documentation/* sphinx-docs/    
 
-RUN mkdir docs && cd docs && sphinx-quickstart -q --ext-autodoc -p MODBUS -a i4sens.com && cd ..
+COPY Modbus/* sphinx-docs/source/
 
-RUN rm -f docs/conf.py && rm -f docs/index.rst && ls docs/
+COPY modbus_config.json sphinx-docs/source/modbus_config.json
 
-COPY documentation/* docs/
-COPY  sample/* docs/  
+COPY Simulation/* sphinx-docs/source/
 
-RUN cd docs && make html && cd _build/html && pip install awscli
+RUN cd sphinx-docs && sphinx-apidoc -o rst source && make clean && make html  
 
-RUN cd docs/_build/html && aws --version
+RUN cd sphinx-docs/_build/html  && aws s3 sync . s3://sphinx-pydocs/Modbus/$VERSION
 
-RUN cd docs/_build/html && aws s3 sync . s3://sphinx-pydocs/Modbus/v$VERSION/
 
 
 

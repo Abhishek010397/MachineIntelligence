@@ -23,7 +23,6 @@ class Decoder:
     def s16(self,value):    
         return -(value & 0x8000) | (value & 0x7fff)
 
-
     def decode_32float(self,response):
         data = pack('>HH',response.registers[0], response.registers[1])
         return unpack('>f', data)[0]
