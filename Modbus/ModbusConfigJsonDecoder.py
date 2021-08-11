@@ -1,6 +1,7 @@
 import json
 from pymodbus.client.sync import ModbusSerialClient as ModbusClientRTU
 from LoggerHandling import Logging
+import sys
 
 class Modbusconfigjsondecoder:
 
@@ -32,6 +33,7 @@ class Modbusconfigjsondecoder:
             Loading the modbus_config.json file
             '''
             f = open('modbus_config.json', 'r')
+            json_object=None
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
@@ -40,9 +42,15 @@ class Modbusconfigjsondecoder:
                             if(k2 == "DeviceSettings"):
                                 value = v2[0]
                                 json_object = json.dumps(value)
-                                return (json_object)
+                                break
+                    break
+                else:
+                    Logging.logger.info("DeviceID not present")
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
+            return (json_object)
 
     def getdeviceinfo(self):
         """
@@ -73,6 +81,8 @@ class Modbusconfigjsondecoder:
                                                 return (json.dumps(value, indent=4))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
 
     def userdatablock(self):
         """
@@ -100,6 +110,8 @@ class Modbusconfigjsondecoder:
                                                 return (json.dumps(value, indent=4))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
 
     def ConnectionType(self):
         """
@@ -126,6 +138,8 @@ class Modbusconfigjsondecoder:
                                                 return (v2)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
 
     def Get_polling_freq(self):
         """
@@ -147,6 +161,8 @@ class Modbusconfigjsondecoder:
                                 return (int(v2.split()[0]))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
 
     def Tcp_function(self, device_setting):  # private
         """
@@ -218,6 +234,8 @@ class Modbusconfigjsondecoder:
                                                 return (str(v2))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
 
     def Offset_Length_Unitid(self, device_setting, dict_values_of_k):
         """
@@ -355,9 +373,12 @@ class Modbusconfigjsondecoder:
                                     if(k == str(value)):
                                         for k2, v2 in v.items():
                                             d[k2] = v2
-            return (d)
+            # return (d)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        finally:
+            f.close()
+            return (d)
 
     def Unitid_singleWrite(self, device_setting, dict_values_of_k):
         """
@@ -386,8 +407,8 @@ class Modbusconfigjsondecoder:
 
         """
         flag = 0
-        self.RegData = RegData
-        self.dict_values_of_k = dict_values_of_k
+        # self.RegData = RegData
+        # self.dict_values_of_k = dict_values_of_k
         try:
             for register_number_value in range(len(dict_values_of_k["RegisterNumber"])):
                 if(int(RegData[register_number_value]) >= float(dict_values_of_k["DataRangeMin"][register_number_value]) and RegData[register_number_value] <= float(dict_values_of_k["DataRangeMax"][register_number_value])):
@@ -400,10 +421,9 @@ class Modbusconfigjsondecoder:
             raise TypeError
         finally:
             if(flag == 0):
-                print("check the data in range: Invalid Data")
+                Logging.logger.info("check the data in range: Invalid Data")
                 return (False)
             else:
-                # print("Data is Correct!!")
                 return (True)
 
     def DataResponseValidation(self, datatype_response, RegisterName_indexing, dict_values_of_k):
@@ -423,11 +443,63 @@ class Modbusconfigjsondecoder:
             else:
                 flag = 0
         except IOError:
-            raise TypeError
-            print(e)
+            Logging.logger.info(TypeError)
         finally:
             if(flag == 0):
                 return (False)
             else:
                 return (True)
+
+    def JsonValidation(self):
+
+        """
+            This function will check if The data lies within in a given range or Not
+
+            :param DataCheckStatus: datatype_response and RegisterName_indexing
+            :raises IOError: If Error Occurs in Loading the json file,it will raise Error
+            :return: it checks and return Boolean value if datatype_response is equal to RegisterData Value
+            :rtype: bool
+
+        """
+        flag=0
+        value=0
+        try:
+            f = open('modbus_config.json', 'r')
+            data = json.load(f)
+            for k, v in data.items():
+                for k1, v1 in v.items():
+                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                        for k3,v3 in v.items():
+                            if(k3=="DeviceSettings" and v1 == self.DeviceID):
+                                flag=flag+1
+                                continue
+                            elif(k3=="PollingRate" and v1 == self.DeviceID):
+                                flag=flag+1
+                                continue
+                            elif(k3=="DeviceType" and v1 == self.DeviceID):
+                                value=str(v["DeviceType"])
+                                flag+=1
+                                continue
+                    
+            if(flag>=3):
+                flag=0
+                for k,v in data.items():
+                    if(k==str(value)):
+                        for k2,v2 in v.items():
+                            if(k2=="ConnType" and k==str(value)):
+                                flag+=1
+                            elif(k==str(value) and k2=="DeviceInfoBlock"):
+                                flag+=1
+                            elif(k==str(value) and k2=="UserDataBlock1"):
+                                flag+=1
+        except Exception as e:
+            Logging.logger.info(e)
+        finally:
+            f.close()
+            if(flag==3):
+                return (True)
+            else:
+                return (False)
+	
+
 

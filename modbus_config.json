@@ -16,7 +16,7 @@
 			"DataType": ["16int", "16int", "16int"],
 			"Multiplier": ["1", "1", "0.1"],
 			"Unit": ["V", "A", "W"],
-			"DataRangeMin": ["0", "-150", "-300"],
+			"DataRangeMin": ["-200", "-150", "-300"],
 			"DataRangeMax": ["600", "150", "300"],
 			"Active": ["True", "True","True"]
 		}],
@@ -27,7 +27,7 @@
 			"DataType": ["16int", "16int", "16int"],
 			"Multiplier": ["1.5", "1", "1"],
 			"Unit": ["V", "S", "V"],
-			"DataRangeMin": ["1.05", "0", "1.05"],
+			"DataRangeMin": ["-10", "-10", "-10"],
 			"DataRangeMax": ["5", "13", "6"],
 			"Active": ["True", "True","True"]
 		}],
@@ -38,7 +38,7 @@
 			"DataType": ["16uint", "16uint", "16uint","16uint","16uint","16uint"],
 			"Multiplier": ["1", "1", "1","1", "1", "1"],
 			"Unit": ["Hz", "S","Hz", "S","Hz", "S"],
-			"DataRangeMin": ["0", "0", "0","0", "0", "0"],
+			"DataRangeMin": ["-10", "-10", "-10","-10", "-10", "-10"],
 			"DataRangeMax": ["4.5", "300", "4.5","10", "4.5", "300"],
 			"Active": ["True", "True","True", "True", "True","True"]
 		}]
