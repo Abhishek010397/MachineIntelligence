@@ -19,8 +19,8 @@ sys.path.append('source')
 # -- Project information -----------------------------------------------------
 
 project = 'Modbus Documentation'
-copyright = '2021, Sens'
-author = 'Sens'
+copyright = '2021, i4Sens'
+author = 'i4Sens'
 
 # The full version, including alpha/beta/rc tags
 release = '2021'

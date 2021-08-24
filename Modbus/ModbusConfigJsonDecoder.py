@@ -1,7 +1,8 @@
 import json
 from pymodbus.client.sync import ModbusSerialClient as ModbusClientRTU
-from LoggerHandling import Logging
+from Logger.LoggerHandling import Logging
 import sys
+from collections import deque
 
 class Modbusconfigjsondecoder:
 
@@ -29,6 +30,7 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("getdevicesettings()"))
             '''
             Loading the modbus_config.json file
             '''
@@ -48,6 +50,10 @@ class Modbusconfigjsondecoder:
                     Logging.logger.info("DeviceID not present")
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
             return (json_object)
@@ -62,6 +68,7 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("getdeviceinfo()"))
             '''
             Loading the modbus_config.json file
             '''
@@ -81,6 +88,10 @@ class Modbusconfigjsondecoder:
                                                 return (json.dumps(value, indent=4))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
 
@@ -94,6 +105,7 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("userdatablock()"))
             f = open('modbus_config.json', 'r')
             data = json.load(f)
             for k, v in data.items():
@@ -110,6 +122,10 @@ class Modbusconfigjsondecoder:
                                                 return (json.dumps(value, indent=4))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
 
@@ -123,6 +139,7 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("ConnectionType()"))
             f = open('modbus_config.json', 'r')
             data = json.load(f)
             for k, v in data.items():
@@ -138,6 +155,10 @@ class Modbusconfigjsondecoder:
                                                 return (v2)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
 
@@ -151,6 +172,7 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("Get_polling_freq()"))
             f = open('modbus_config.json', 'r')
             data = json.load(f)
             for k, v in data.items():
@@ -161,10 +183,14 @@ class Modbusconfigjsondecoder:
                                 return (int(v2.split()[0]))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
 
-    def Tcp_function(self, device_setting):  # private
+    def Tcp_function(self, device_setting): 
         """
             This function Loads the device_setting Parameter to get Connection Related information
 
@@ -176,14 +202,20 @@ class Modbusconfigjsondecoder:
         """
 
         try:
+            Logging.logger.info("{} function has been called".format("Tcp_function()"))
             device_setting_json_value = json.loads(device_setting)
             IPAddress_value = device_setting_json_value["IPAddress"]
             Port_value = device_setting_json_value["Port"]
-            return (IPAddress_value, Port_value)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (IPAddress_value, Port_value)
 
-    def RTU_function(self, device_setting):  # make it private
+    def RTU_function(self, device_setting):
         """
             This function Loads the device_setting Parameter to get Connection Related information
 
@@ -195,6 +227,7 @@ class Modbusconfigjsondecoder:
         """
 
         try:
+            Logging.logger.info("{} function has been called".format("RTU_function()"))
             device_setting_json_value = json.loads(device_setting)
             client = ModbusClientRTU(
                 method='rtu',
@@ -205,9 +238,15 @@ class Modbusconfigjsondecoder:
                 stopbits=int(device_setting_json_value['StopBit']),
                 bytesize=int(device_setting_json_value['bytesize'])
             )
-            return (client)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (client)
+            
 
     def getdevicename(self):
         """
@@ -219,6 +258,7 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("getdevicename()"))
             f = open('modbus_config.json', 'r')
             data = json.load(f)
             for k, v in data.items():
@@ -234,6 +274,10 @@ class Modbusconfigjsondecoder:
                                                 return (str(v2))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
 
@@ -250,9 +294,14 @@ class Modbusconfigjsondecoder:
         try:
             device_setting_unpack = json.loads(device_setting)
             DeviceInfoBlock_unpack = dict_values_of_k
-            return (int(device_setting_unpack['UnitID']), int(DeviceInfoBlock_unpack['RegisterNumber'][0]), int(len(DeviceInfoBlock_unpack['RegisterNumber'])))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (int(device_setting_unpack['UnitID']), int(DeviceInfoBlock_unpack['RegisterNumber'][0]), int(len(DeviceInfoBlock_unpack['RegisterNumber'])))
 
     def GetAllKeysFrom_DeviceInfoBlock(self, DeviceInfoBlock):
         """
@@ -264,6 +313,7 @@ class Modbusconfigjsondecoder:
             :rtype: tuple
         """
         try:
+            Logging.logger.info("{} function has been called".format("GetAllKeysFrom_DeviceInfoBlock()"))
             DeviceInfoBlock_unpack = json.loads(DeviceInfoBlock)
             for k, v in DeviceInfoBlock_unpack.items():
                 if(k == "RegisterNumber"):
@@ -276,9 +326,14 @@ class Modbusconfigjsondecoder:
                     DataType = v
                 elif(k == "Active"):
                     Active = v
-            return (RegisterNumber, RegisterName, RegisterType, DataType, Active)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (RegisterNumber, RegisterName, RegisterType, DataType, Active)
 
     def dataTypeResponse(self, decoder, datatype_value):
         """
@@ -290,6 +345,7 @@ class Modbusconfigjsondecoder:
             :rtype: string
         """
         try:
+            Logging.logger.info("{} function has been called".format("dataTypeResponse()"))
             if(str(datatype_value) == "String32"):
                 return (decoder.decode_string(32))
             elif(str(datatype_value) == "String"):
@@ -323,6 +379,14 @@ class Modbusconfigjsondecoder:
 
         except IOError:
             raise TypeError
+        except IOError:
+            raise TypeError('TypeError')
+        except TypeError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            pass
 
     def GetAllKeysFrom_UserDataBlock1(self, UserDataBlock1):
         """
@@ -334,6 +398,7 @@ class Modbusconfigjsondecoder:
             :rtype: tuple
         """
         try:
+            Logging.logger.info("{} function has been called".format("GetAllKeysFrom_UserDataBlock1()"))
             UserDataBlock1_unpack = json.loads(UserDataBlock1)
             for k, v in UserDataBlock1_unpack.items():
                 if(k == "RegisterNumber"):
@@ -354,12 +419,25 @@ class Modbusconfigjsondecoder:
                     DataRangeMin = v
                 elif(k == "DataRangeMax"):
                     DataRangeMax = v
-            return (RegisterNumber, RegisterName, RegisterType, DataType, Active, Multiplier, Unit, DataRangeMin, DataRangeMax)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (RegisterNumber, RegisterName, RegisterType, DataType, Active, Multiplier, Unit, DataRangeMin, DataRangeMax)
 
     def keys_get_function(self):
+        """
+            This function returns all Block Keys and values Related to DeviceID
+
+            :raises IOError: If Error Occurs in Loading the json file,it will raise Error
+            :return: it returns Data Block keys and values specific to Device id 
+            :rtype: json
+        """
         try:
+            Logging.logger.info("{} function has been called".format("keys_get_function()"))
             d = {}
             f = open('modbus_config.json', 'r')
             data = json.load(f)
@@ -373,9 +451,12 @@ class Modbusconfigjsondecoder:
                                     if(k == str(value)):
                                         for k2, v2 in v.items():
                                             d[k2] = v2
-            # return (d)
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             f.close()
             return (d)
@@ -391,10 +472,16 @@ class Modbusconfigjsondecoder:
 
         """
         try:
+            Logging.logger.info("{} function has been called".format("keys_get_function()"))
             device_setting_unpack = json.loads(device_setting)
-            return (int(device_setting_unpack['UnitID']))
         except IOError:
             raise FileNotFoundError('File Not Found')
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (int(device_setting_unpack['UnitID']))
 
     def DataCheckStatus(self, RegData, dict_values_of_k):
         """
@@ -407,21 +494,27 @@ class Modbusconfigjsondecoder:
 
         """
         flag = 0
-        # self.RegData = RegData
-        # self.dict_values_of_k = dict_values_of_k
         try:
+            Logging.logger.info("{} function has been called".format("DataCheckStatus()"))
             for register_number_value in range(len(dict_values_of_k["RegisterNumber"])):
-                if(int(RegData[register_number_value]) >= float(dict_values_of_k["DataRangeMin"][register_number_value]) and RegData[register_number_value] <= float(dict_values_of_k["DataRangeMax"][register_number_value])):
+                if(register_number_value>=len(RegData)):
+                    flag+=1
+                    continue
+                elif(int(RegData[register_number_value]) >= float(dict_values_of_k["DataRangeMin"][register_number_value]) and RegData[register_number_value] <= float(dict_values_of_k["DataRangeMax"][register_number_value])):
                     flag += 1
                     continue
                 else:
                     flag = 0
                     break
         except IOError:
-            raise TypeError
+            raise TypeError("TypeError")
+        except TypeError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             if(flag == 0):
-                Logging.logger.info("check the data in range: Invalid Data")
+                Logging.logger.error("check the data in range: Invalid Data")
                 return (False)
             else:
                 return (True)
@@ -430,7 +523,7 @@ class Modbusconfigjsondecoder:
         """
             This function will check if The data lies within in a given range or Not
 
-            :param DataCheckStatus: datatype_response and RegisterName_indexing
+            :param DataResponseValidation: `datatype_response` , `RegisterName_indexing` and `dict_values_of_k`
             :raises IOError: If Error Occurs in Loading the json file,it will raise Error
             :return: it checks and return Boolean value if datatype_response is equal to RegisterData Value
             :rtype: bool
@@ -438,12 +531,15 @@ class Modbusconfigjsondecoder:
         """
         flag = 0
         try:
-            if(datatype_response >= float(dict_values_of_k["DataRangeMin"][RegisterName_indexing]) and datatype_response <= float(dict_values_of_k["DataRangeMax"][RegisterName_indexing])):
+            Logging.logger.info("{} function has been called".format("DataResponseValidation()"))
+            if(datatype_response >= float(dict_values_of_k["DataRangeMin"][RegisterName_indexing]) and datatype_response <= float(dict_values_of_k["DataRangeMax"][RegisterName_indexing]) ):
                 flag = 1
             else:
                 flag = 0
         except IOError:
-            Logging.logger.info(TypeError)
+            Logging.logger.exception(TypeError)
+        except Exception as e:
+            Logging.logger.exception(e)
         finally:
             if(flag == 0):
                 return (False)
@@ -453,17 +549,18 @@ class Modbusconfigjsondecoder:
     def JsonValidation(self):
 
         """
-            This function will check if The data lies within in a given range or Not
+            This function will check if the Json file is valid or Not and Device Id which user 
+            has provided is present in Json file or not
 
-            :param DataCheckStatus: datatype_response and RegisterName_indexing
-            :raises IOError: If Error Occurs in Loading the json file,it will raise Error
-            :return: it checks and return Boolean value if datatype_response is equal to RegisterData Value
+            :raises IOError,FileNotFoundError: If Error Occurs in Loading the json file,it will raise Error or Block is present or not
+            :return: it checks and return True if Json is valid is and all blocks are present else eturns False
             :rtype: bool
 
         """
         flag=0
         value=0
         try:
+            Logging.logger.info("{} function has been called".format("JsonValidation()"))
             f = open('modbus_config.json', 'r')
             data = json.load(f)
             for k, v in data.items():
@@ -492,14 +589,104 @@ class Modbusconfigjsondecoder:
                                 flag+=1
                             elif(k==str(value) and k2=="UserDataBlock1"):
                                 flag+=1
+        except IOError:
+            Logging.logger.exception(TypeError)
+        except TypeError as e:
+            Logging.logger.exception(e)
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
         except Exception as e:
-            Logging.logger.info(e)
+            Logging.logger.exception(e)    
         finally:
             f.close()
             if(flag==3):
                 return (True)
             else:
                 return (False)
-	
+        
+    def Response_validation(self,key_pair_values,response,RegData, input_List):
 
+        """
+            This function will check if The data lies within in a given range or Not
 
+            :param Response_validation: `key_pair_values` , `response` , `RegData` , `input_List`
+            :raises Exception: AttributeError or TypeError
+            :return: it checks and return True if data written into Register is equal to the Data read from the Register else False
+            :rtype: bool
+
+        """
+        try:
+            Logging.logger.info("{} function has been called".format("Response_validation()"))
+            flag=0
+            output=None
+            indx=0
+            for input_values in input_List:
+                for k, v in key_pair_values.items():
+                    if (input_values == k):
+                        dict_values_of_k = v[0]
+                        if(dict_values_of_k["RegisterType"][0]=="Read"):
+                            flag=1
+                        else:
+                            for response_key,response_value in response.items():
+                                if(input_values==response_key):
+                                    for response_key2,response_value2 in response_value.items():
+                                        index_response_key2=dict_values_of_k["RegisterName"].index(response_key2)
+                    
+                                        multiplier_RegData_value=round(RegData[index_response_key2]*eval(dict_values_of_k["Multiplier"][index_response_key2]),3)
+                                        if(multiplier_RegData_value in RegData):
+                                            flag=1
+                                            continue
+                                        else:
+                                            flag=0
+                                            raise Exception
+        except IOError:
+            Logging.logger.exception(TypeError)
+        except TypeError as e:
+            Logging.logger.exception(e)
+        except FileNotFoundError as e:
+            Logging.logger.exception(e)
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            if(flag==1):
+                return (True)
+            else:
+                return(False)
+    
+    def Data_to_be_written(self,RegData,dict_values_of_k): 
+
+        """
+            This function will return the Set of values to be written into Respective Registers
+
+            :param Response_validation: `dict_values_of_k`, `RegData` 
+            :raises Exception: AttributeError or TypeError
+            :return: it checks and returns the set of Data to be written into Registers
+            :rtype: list
+
+        """
+
+        q=deque()
+        lst=[]
+        lst1=[]
+        length=len(dict_values_of_k["RegisterNumber"])
+
+        if(len(RegData)>=length):
+            for data_value in range(len(RegData)): 
+                q.append(RegData[data_value])
+        else:
+            for data_value in range(length):
+                if(data_value>=len(RegData)):
+                    q.append(0)
+                else:
+                    q.append(RegData[data_value])
+                    
+        for data_value in range(length):
+            lst.append(q.popleft())
+
+        queue_size=len(q)
+        if(queue_size==0):
+            lst1.append(0)
+        else:
+            for left_values in range(queue_size):
+                lst1.append(q.popleft())
+        return (lst,lst1)

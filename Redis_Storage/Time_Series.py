@@ -3,7 +3,7 @@ import datetime
 import calendar
 from flatten_json import flatten
 import redis
-from LoggerHandling import Logging
+from Logger.LoggerHandling import Logging
 
 class redis_storage:
 

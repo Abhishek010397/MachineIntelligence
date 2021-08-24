@@ -25,7 +25,7 @@
 			"RegisterName": ["ac_ov_trip_level_1", "ac_ov_trip_time_1", "ac_ov_trip_level_2"],
 			"RegisterType": ["ReadWrite", "ReadWrite", "ReadWrite"],
 			"DataType": ["16int", "16int", "16int"],
-			"Multiplier": ["1.5", "1", "1"],
+			"Multiplier": ["1", "1", "1"],
 			"Unit": ["V", "S", "V"],
 			"DataRangeMin": ["-10", "-10", "-10"],
 			"DataRangeMax": ["5", "13", "6"],
@@ -41,8 +41,18 @@
 			"DataRangeMin": ["-10", "-10", "-10","-10", "-10", "-10"],
 			"DataRangeMax": ["4.5", "300", "4.5","10", "4.5", "300"],
 			"Active": ["True", "True","True", "True", "True","True"]
+		}],
+		"ReadWriteBlock3": [{
+			"RegisterNumber": ["788", "789", "790"],
+			"RegisterName": ["ac_ov_trip_level_1", "ac_ov_trip_time_1", "ac_ov_trip_level_2"],
+			"RegisterType": ["ReadWrite", "ReadWrite", "ReadWrite"],
+			"DataType": ["16int", "16int", "16int"],
+			"Multiplier": ["1", "1", "1"],
+			"Unit": ["V", "S", "V"],
+			"DataRangeMin": ["-10", "-10", "-10"],
+			"DataRangeMax": ["5", "13", "6"],
+			"Active": ["True", "True","True"]
 		}]
-
 	},
 
 	"devicetype02": {

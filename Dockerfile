@@ -4,7 +4,7 @@ ARG VERSION=0.0.0
 
 ENV PYTHONBUFFERED=1
 
-RUN mkdir sphinx-docs && cd sphinx-docs && sphinx-quickstart -q --ext-autodoc -p MODBUS -a example.com 
+RUN mkdir sphinx-docs && cd sphinx-docs && sphinx-quickstart -q --ext-autodoc -p MODBUS -a i4sens.com 
 
 RUN rm -f conf.py && rm -f index.rst 
 
@@ -17,6 +17,8 @@ COPY Modbus/* sphinx-docs/source/
 COPY modbus_config.json sphinx-docs/source/modbus_config.json
 
 COPY Simulation/* sphinx-docs/source/
+
+RUN export PYTHONPATH=sphinx-docs/source
 
 RUN cd sphinx-docs && sphinx-apidoc -o rst source && make clean && make html  
 

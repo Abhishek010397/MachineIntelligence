@@ -1,0 +1,34 @@
+stages:          
+  - TEST-BLOCK-READ-SIMULATION
+  - BUILD-PYTHON-DOCS
+
+test_block_read_with_simulator:
+  image: 2307297/pymodbus:latest
+  stage: TEST-BLOCK-READ-SIMULATION
+  only:
+    - master
+    - test
+  tags:
+    - python-cicd-runners
+  script:
+    - export PYTHONPATH=$PYTHONPATH:/builds/i4sens/new_code/
+    - python Simulation/server.py &
+    - python Simulation/Sample_Write_function.py 
+    - python Simulation/Sample_Read.py
+    - python Simulation/ModbusPolling.py
+  artifacts:
+    paths:
+      - application_name.log
+  rules:
+    - if: $TEST == 'YES'
+
+build_the_documentation:
+  image: docker:19.03.12
+  stage: BUILD-PYTHON-DOCS
+  tags:
+    - docker-cicd
+  script:
+    - docker build -t sphinx --build-arg VERSION=$version .
+    - echo "Your DOC-URL is https://sphinx-pydocs.s3.amazonaws.com/Modbus/$version/index.html"
+  rules:
+    - if: $DOC == 'YES'

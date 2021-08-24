@@ -3,8 +3,7 @@ import re
 from logging.handlers import TimedRotatingFileHandler
 class Logging:
     logger = logging.getLogger(__name__)
-    logFormatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
-    #logging.getLogger("pymodbus").setLevel(logging.WARNING)
+    logFormatter = logging.Formatter("%(asctime)s:%(levelname)s:%(module)s:%(message)s")
     logger.setLevel(logging.DEBUG)
 
     '''FILE HANDLER'''
@@ -19,7 +18,6 @@ class Logging:
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(logFormatter)
-
 
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)

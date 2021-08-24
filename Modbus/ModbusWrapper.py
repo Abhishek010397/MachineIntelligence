@@ -7,9 +7,9 @@ from pymodbus.exceptions import ModbusIOException, ParameterException, Connectio
 from pymodbus.payload import BinaryPayloadDecoder
 import json
 from pymodbus.constants import Endian
-from ModbusConfigJsonDecoder import Modbusconfigjsondecoder
-from LoggerHandling import Logging
-from UtilityClass import Decoder
+from Modbus.ModbusConfigJsonDecoder import Modbusconfigjsondecoder
+from Logger.LoggerHandling import Logging
+from Modbus.UtilityClass import Decoder
 
 
 class Modbus:
@@ -30,7 +30,19 @@ class Modbus:
         self.value_parsing= Decoder()
 
     def device_setting(self):
-        return (self.device.getdevicesettings())
+        """ This function calls the getdevicesettings() function defined in Modbusconfigjsondecoder Module to get the Settings
+            Information for particular `Device ID`
+
+        :return: getdevicesettings() i.e (setting_information for each deviceID)
+        :rtype: json
+
+        """
+        try:
+            Logging.logger.info("Calling {} function".format("getdevicesettings()"))
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            return (self.device.getdevicesettings())
 
     def polling_freq(self):
         """ This function calls the Get_polling_freq() function defined in Modbusconfigjsondecoder Module to get the poll_frequency
@@ -39,8 +51,13 @@ class Modbus:
         :rtype: int
 
         """
-        poll_frequency = self.device.Get_polling_freq()
-        return (poll_frequency)
+        try:
+            Logging.logger.info("Calling {} function".format("Get_polling_freq()"))
+        except Exception as e:
+            Logging.logger.exception(e)
+        finally:
+            poll_frequency = self.device.Get_polling_freq()
+            return (poll_frequency)
 
     def connect_function(self):
         """
@@ -53,6 +70,7 @@ class Modbus:
         """
 
         try:
+            Logging.logger.info("Running connect_function")
             connect_type = self.device.ConnectionType()
             if (connect_type == "TCP"):
 
@@ -66,7 +84,7 @@ class Modbus:
                 device_connector = Device_connection_master.connect()
                 return (Device_connection_master, device_connector)
         except Exception as e:
-            Logging.logger.info(e)
+            Logging.logger.exception(e, exc_info=True)
 
     def modbus_block_read(self, input_list):
         """
@@ -82,7 +100,7 @@ class Modbus:
             if(self.device.JsonValidation()==True):
                 pass
             else:
-                Logging.logger.info("DeviceID absent, please check")
+                Logging.logger.warning("DeviceID absent, please check")
                 raise AttributeError
             Device_connection_master, device_connector = self.connect_function()
             '''
@@ -120,41 +138,34 @@ class Modbus:
                                     Multiplying the Actual Data with Multiplier
                                     """
                                     nested_json_data[str(dict_values_of_k["RegisterName"][RegisterName_indexing])] = round((datatype_response)*(eval(dict_values_of_k["Multiplier"][RegisterName_indexing])), 3)
-
+                                    
                             final_json_data[str(input_values)] = dict(nested_json_data)
                             del nested_json_data
             else:
+                Logging.logger.exception(ConnectionError)
                 raise ConnectionError
+
         except ModbusIOException as e:
-            if(bool(final_json_data)==False):
-                final_json_data={"error Code":101,"Error Desc":"ModbusIOError"}
-            # Logging.logger.warning(error)
-            # traceback.print_exc(file=sys.stdout)
+            final_json_data={"error_code":101,"error_desc":"ModbusIOError"}
+            Logging.logger.exception(e)
         except ParameterException as e:
-            if(bool(final_json_data)==False):
-                final_json_data={"error Code":102,"Error Desc":"ParameterError"}
-            # Logging.logger.warning(e)
-            # traceback.print_exc(file=sys.stdout)
+            final_json_data={"error Code":102,"Error Desc":"ParameterError"}
+            Logging.logger.exception(e)
         except ConnectionError as e:
-            if(bool(final_json_data)==False):
-                final_json_data={"error Code":103,"Error Desc":"ConnectionError"}
-            # Logging.logger.warning(e)
-            # traceback.print_exc(file=sys.stdout)
+            final_json_data={"error Code":103,"Error Desc":"ConnectionError"}
+            Logging.logger.exception(e, exc_info=True)
         except AttributeError as e:
-            if(bool(final_json_data)==False):
-                final_json_data={"error Code":104,"Error Desc":"AttributeError"}
+            final_json_data={"error Code":104,"Error Desc":"AttributeError"}
+            Logging.logger.exception(e)
         except TypeError as e:
-            if(bool(final_json_data)==False):
-                final_json_data={"error Code":106,"Error Desc":"Type Error"}
+            final_json_data={"error Code":106,"Error Desc":"Type Error"}
+            Logging.logger.exception(e)
         except Exception as e:
-            if(bool(final_json_data)==False):
-                final_json_data={"error Code":105,"Error Desc":"User Related Error"}
+            final_json_data={"error Code":105,"Error Desc":"User Related Error"}
+            Logging.logger.exception(e)
         finally:
-            if(final_json_data==True):
-                return (final_json_data)
-            else:
-                Device_connection_master.close()
-                return (final_json_data)
+            Device_connection_master.close()
+            return (final_json_data)
 
     def modbus_single_write(self, RegData, input_List):
 
@@ -163,66 +174,81 @@ class Modbus:
 
             :param modbus_single_write: RegisterData and input_List
         """
-        dict_values_of_k=None
+        write_result=None
+        RegData1=0
+        lst=[]
         try:
             if(self.device.JsonValidation()==True):
                 pass
             else:
-                Logging.logger.info("DeviceID absent, please check")
+                Logging.logger.warning("DeviceID absent, please check")
                 raise AttributeError
             write_result_json={}
             Device_connection_master, device_connector = self.connect_function()
-            write_result=None
             if (device_connector == True):
                 key_pair_values = self.device.keys_get_function()
                 for input_values in input_List:
                     for k, v in key_pair_values.items():
                         if (input_values == k):
                             dict_values_of_k = v[0]
+                            if(RegData1==0):
+                                RegData,RegData1=self.device.Data_to_be_written(RegData,dict_values_of_k)
+                            else:
+                                RegData,RegData1=self.device.Data_to_be_written(RegData1,dict_values_of_k)
+                            lst+=RegData
                             if(dict_values_of_k["RegisterType"][0].lower()=="read"):
-                                write_result=None
+                                Logging.logger.warning("Input_value {} is Read Data type".format(input_values))
                             else:
                                 unitId = self.device.Unitid_singleWrite(self.device_setting(), dict_values_of_k)
                                 data_check_status = self.device.DataCheckStatus(RegData, dict_values_of_k)
                                 if (data_check_status == True):
                                     for register_number_value in range(len(dict_values_of_k["RegisterNumber"])):
+
                                         write_result = Device_connection_master.write_registers(
                                             int(dict_values_of_k["RegisterNumber"][register_number_value]),
                                             int(self.value_parsing.signed(int(RegData[register_number_value]))), unit=unitId)
-
+                                    
                                         write_result_json[str(dict_values_of_k["RegisterNumber"][register_number_value])]=write_result
                                 else:
-                                    Logging.logger.info("Data Incorrect!!")
+                                    Logging.logger.warning("Can't Write Data into Register,Invalid Data")
+                                    raise ValueError
             else:
+                Logging.logger.exception(ConnectionError)
                 raise ConnectionError
         except (ModbusIOException, error):
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":101,"Error Desc":"ModbusIOError"}
+            write_result_json={"error Code":101,"Error Desc":"ModbusIOError"}
+            Logging.logger.exception(error)
         except ParameterException as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":102,"Error Desc":"Parameter Exception Error"}
+            write_result_json={"error Code":102,"Error Desc":"Parameter Exception Error"}
+            Logging.logger.exception(e)
         except ConnectionError as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":103,"Error Desc":"Connection Error"}
+            write_result_json={"error Code":103,"Error Desc":"Connection Error"}
+            Logging.logger.exception(e)
         except AttributeError as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":104,"Error Desc":"Attribute Error"}
+            write_result_json={"error Code":104,"Error Desc":"Attribute Error"}
+            Logging.logger.exception(e)
+        except TypeError as e:
+            write_result_json={"error Code":105,"Error Desc":"Type Error"}
+            Logging.logger.exception(e)
+        except ValueError as e:
+            write_result_json={"error Code":107,"Error Desc":"Value Error"}
+            Logging.logger.exception(e)
         except Exception as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":105,"Error Desc":"User Related Error"}
+            write_result_json={"error Code":106,"Error Desc":"User Related Error"}
+            Logging.logger.exception(e)
         finally:
-            if(dict_values_of_k==None):
-                return (write_result_json)
+            if(write_result==None):
+                Logging.logger.info(write_result_json)
             else:
                 if(dict_values_of_k["RegisterType"][0].lower()=="readwrite"):
                     if(write_result!=None):
-                        Logging.logger.info('Modbus Single Read data: %s', self.modbus_block_read(input_List))
-                    else:
-                        return ("RegisterType is Read,Can't Call Block Read")
+                        response=self.modbus_block_read(input_List)
+                        if(self.device.Response_validation(key_pair_values,response,lst, input_List)):
+                            Logging.logger.info({"Read_Response":"Written and Reading data match perfectly"})
+                        else:
+                            Logging.logger.warning({"Read_Response":"Written Data does not match with Read data"})
                 elif(dict_values_of_k["RegisterType"][0].lower()=="write"):
-                    return (write_result_json)
-                else:
-                    Logging.logger.info("Modbus Response:%s",write_result)
+                    Logging.logger.info(write_result_json)
             Device_connection_master.close()
 
     def modbus_block_write(self, RegData, input_List):
@@ -232,24 +258,30 @@ class Modbus:
 
             :param modbus_block_write: RegisterData and input_List
         """
+        RegData1=0
+        lst=[]
         try:
-            dict_values_of_k=None
+            write_result=None
             if(self.device.JsonValidation()==True):
                 pass
             else:
-                Logging.logger.info("DeviceID absent, please check")
+                Logging.logger.warning("DeviceID absent, please check")
                 raise AttributeError
             write_result_json={}
             Device_connection_master, device_connector = self.connect_function()
-            write_result=None
             if (device_connector == True):
                 key_pair_values = self.device.keys_get_function()
                 for input_values in input_List:
                     for k, v in key_pair_values.items():
                         if (input_values == k):
                             dict_values_of_k = v[0]
+                            if(RegData1==0):
+                                RegData,RegData1=self.device.Data_to_be_written(RegData,dict_values_of_k)
+                            else:
+                                RegData,RegData1=self.device.Data_to_be_written(RegData1,dict_values_of_k)
+                            lst+=RegData
                             if(dict_values_of_k["RegisterType"][0].lower()=="read"):
-                                write_result=None
+                                Logging.logger.warning("Input_value {} is Read Data type".format(input_values))
                             else:
                                 data_check_status = self.device.DataCheckStatus(RegData, dict_values_of_k)
                                 unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),
@@ -259,38 +291,46 @@ class Modbus:
                                         [(self.value_parsing.signed(RegData[register_number_value])) for register_number_value in range(len(dict_values_of_k["RegisterNumber"]))], unit=unitId)
                                     write_result_json['offset']=write_result
                                 else:
-                                    Logging.logger.info("Can't Write Data into Register,Invalid Data")
+                                    Logging.logger.warning("Can't Write Data into Register,Invalid Data")
+                                    raise ValueError
                                 break
             else:
+                Logging.logger.exception(ConnectionError)
                 raise ConnectionError
         except (ModbusIOException, error):
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":101,"Error Desc":"ModbusIOError"}
+            write_result_json={"error Code":101,"Error Desc":"ModbusIOError"}
+            Logging.logger.exception(error)
         except ParameterException as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":102,"Error Desc":"Parameter Exception Error"}
+            write_result_json={"error Code":102,"Error Desc":"Parameter Exception Error"}
+            Logging.logger.exception(e)
         except ConnectionError as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":103,"Error Desc":"Connection Error"}
+            write_result_json={"error Code":103,"Error Desc":"Connection Error"}
+            Logging.logger.exception(e)
         except AttributeError as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":104,"Error Desc":"Attribute Error"}
+            write_result_json={"error Code":104,"Error Desc":"Attribute Error"}
+            Logging.logger.exception(e)
+        except TypeError as e:
+            write_result_json={"error Code":105,"Error Desc":"Type Error"}
+            Logging.logger.exception(e)
+        except ValueError as e:
+            write_result_json={"error Code":107,"Error Desc":"Value Error"}
+            Logging.logger.exception(e)
         except Exception as e:
-            if(bool(write_result_json)==False):
-                write_result_json={"error Code":105,"Error Desc":"User Related Error"}
+            write_result_json={"error Code":106,"Error Desc":"User Related Error"}
+            Logging.logger.exception(e)
         finally:
-            if(dict_values_of_k==None):
-                return (write_result_json)
+            if(write_result==None):
+                Logging.logger.info(write_result_json)
             else:
                 if(dict_values_of_k["RegisterType"][0].lower()=="readwrite"):
                     if(write_result!=None):
-                        Logging.logger.info('Modbus Single Read data: %s', self.modbus_block_read(input_List))
-                    else:
-                        return ("RegisterType is Read,Can't Call Block Read")
+                        response=self.modbus_block_read(input_List)
+                        if(self.device.Response_validation(key_pair_values,response,lst, input_List)):
+                            Logging.logger.info({"Read_Response":"Valid checking of Data of Read and Write"})
+                        else:
+                            Logging.logger.warning({"Read_Response":"Written Data does not match with Read data"})
                 elif(dict_values_of_k["RegisterType"][0].lower()=="write"):
-                    return (write_result_json)
-                else:
-                    Logging.logger.info("Modbus Response:%s",write_result)
+                    Logging.logger.info(write_result_json)
             Device_connection_master.close()
 
 

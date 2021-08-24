@@ -13,10 +13,10 @@ Welcome to Modbus  documentation!
    rst/ModbusPolling
    rst/ModbusWrapper
    rst/ModbusConfigJsonDecoder
-   rst/Sample_Write_function
+   rst/modbus_config
    rst/UtilityClass
    rst/server
-   rst/Sample_Read
+
 
   
 
