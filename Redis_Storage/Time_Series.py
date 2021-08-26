@@ -26,28 +26,29 @@ class redis_storage:
          
    def add_modbus_data(self, key, data, label):
       """
-         This function adds the fileds and values to the particular keys. 
+         This function adds the fileds and values to the particular keys.
 
          :param key, data, label: This function takes `key` , `data` and `label`
          :raises redis.RedisError,redis.exceptions.ResponseError: when redis Module gives error, Exceptions will be raised
          :return: add response
          :rtype: tuple
-      """ 
-
+      """
       try:
+         Logging.logger.info("{} function has been called".format("add_modbus_data()"))
          flat_json = flatten(data)
          current_datetime = datetime.datetime.utcnow()
          current_timetuple = current_datetime.utctimetuple()
          current_timestamp = calendar.timegm(current_timetuple)
          for k, v in flat_json.items():
-            key_add = key+':'+k
+            key_add = key + ':' + k
             self.rts.add(key_add, current_timestamp, v, labels=label)
-      except redis.RedisError as e:
-         Logging.logger.exception({"error Code":111,"Error Desc":e})
+      except Exception as e:
          Logging.logger.exception(e)
-      except redis.exceptions.ResponseError as e:
-         Logging.logger.exception({"error Code":112,"Error Desc":e})
-         Logging.logger.exception(e)
+
+      # except redis.RedisError as e:
+      #    Logging.logger.exception({"error Code":111,"Error Desc":e})
+      #    Logging.logger.exception(e)
+
 
    def get_modbus_data(self, key, data):
       """
@@ -58,7 +59,13 @@ class redis_storage:
          :return: get response
       """ 
       try:
+         Logging.logger.info("{} function has been called".format("get_modbus_data()"))
          flat_json = flatten(data)
+         for k, v in flat_json.items():
+            key_add = key + ':' + k
+            print(key_add)
+            response = self.rts.get(key_add)
+            Logging.logger.info(response)
       except redis.RedisError as e:
          Logging.logger.exception({"error Code":111,"Error Desc":e})
          Logging.logger.exception(e)
@@ -66,9 +73,8 @@ class redis_storage:
          Logging.logger.exception({"error Code":112,"Error Desc":e})
          Logging.logger.exception(e)
       finally:
-         for k, v in flat_json.items():
-            key_add = key + ':' + k
-            Logging.logger.info(self.rts.get(key_add))
+         return response
+
 
    def mget_modbus_data(self, value):
       """
@@ -80,7 +86,9 @@ class redis_storage:
       """
 
       try:
+         Logging.logger.info("{} function has been called".format("mget_modbus_data()"))
          response=self.rts.mget([value], with_labels=True)
+         Logging.logger.info(response)
       except redis.RedisError as e:
          Logging.logger.exception({"error Code":111,"Error Desc":e})
          Logging.logger.exception(e)
@@ -88,7 +96,7 @@ class redis_storage:
          Logging.logger.exception({"error Code":112,"Error Desc":e})
          Logging.logger.exception(e)
       finally:
-         Logging.logger.info(response)
+         return response
 
    def info(self, data, key, label):
       """
@@ -100,7 +108,12 @@ class redis_storage:
       """
 
       try:
+         Logging.logger.info("{} function has been called".format("info()"))
          flat_json = flatten(data)
+         for k, v in flat_json.items():
+            key_add = key+':'+k
+            response = self.rts.info(key_add).__dict__
+            Logging.logger.info(response)
       except redis.RedisError as e:
          Logging.logger.exception({"error Code":111,"Error Desc":e})
          Logging.logger.exception(e)
@@ -108,10 +121,6 @@ class redis_storage:
          Logging.logger.exception({"error Code":112,"Error Desc":e})
          Logging.logger.exception(e)
       finally:
-         for k, v in flat_json.items():
-            key_add = key+':'+k
-            response = self.rts.info(key_add).__dict__
-            Logging.logger.info(response)
+         return response
 
 
-   

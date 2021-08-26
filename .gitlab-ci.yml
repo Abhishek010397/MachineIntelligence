@@ -1,9 +1,21 @@
-stages:          
+stages:    
+  - VALIDATING-THE-SERVER-WITH-DEPENDENCIES      
   - TEST-BLOCK-READ-SIMULATION
   - BUILD-PYTHON-DOCS
 
+
+validating_server_with_python_dependencies:
+  image: 2307297/py-redis:0.1
+  stage: VALIDATING-THE-SERVER-WITH-DEPENDENCIES
+  tags:
+    - python-cicd-runners
+  script:
+    - chmod +x validator/validation.sh
+    - ./validator/validation.sh
+
+
 test_block_read_with_simulator:
-  image: 2307297/pymodbus:latest
+  image: 2307297/py-redis:0.1
   stage: TEST-BLOCK-READ-SIMULATION
   only:
     - master
@@ -11,16 +23,19 @@ test_block_read_with_simulator:
   tags:
     - python-cicd-runners
   script:
+    - redis-server --loadmodule /etc/redis/redistimeseries.so --daemonize yes
+    - ps aux | grep redis
     - export PYTHONPATH=$PYTHONPATH:/builds/i4sens/new_code/
-    - python Simulation/server.py &
-    - python Simulation/Sample_Write_function.py 
-    - python Simulation/Sample_Read.py
-    - python Simulation/ModbusPolling.py
+    - python3 Simulation/server.py &
+    - python3 Simulation/Sample_Write_function.py 
+    - python3 Simulation/Sample_Read.py
+    - python3 Simulation/Test_Version0.01.py
   artifacts:
     paths:
       - application_name.log
   rules:
     - if: $TEST == 'YES'
+
 
 build_the_documentation:
   image: docker:19.03.12
@@ -32,3 +47,5 @@ build_the_documentation:
     - echo "Your DOC-URL is https://sphinx-pydocs.s3.amazonaws.com/Modbus/$version/index.html"
   rules:
     - if: $DOC == 'YES'
+
+

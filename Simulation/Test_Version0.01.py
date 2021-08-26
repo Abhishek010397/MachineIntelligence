@@ -1,58 +1,56 @@
 from Modbus.ModbusWrapper import Modbus
-from time import sleep
 from Logger.LoggerHandling import Logging
 from Redis_Storage.Time_Series import redis_storage
+from MqTT.MqTTPub import MqttPub
 
-def ModbusPollFunction(DeviceID):
-    """ It prints Every information Related to DeviceID in Json Format
+class ModbusPollFunction:
 
-        :param: DeviceID and Polling_frequency
-        :return: Returns information related to Device id `ModbusPollFunction`
-        :rtype: Json object
-    """
-    Logging.logger.info("Running Single_write")
-    RegData = [1,2,3,4,5,-1]
-    input_List = ["ReadWriteBlock1","ReadWriteBlock2","ReadWriteBlock3"]
-    DeviceID.modbus_single_write(RegData, input_List)
+    def __init__(self,DeviceID):
+        self.DeviceID = DeviceID
 
-    Logging.logger.info("Running Block_read")    
-    input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
-    data = DeviceID.modbus_block_read(input_list_read)
-    # print(data)
+    def func(self):
+        Logging.logger.info("Running Single_write")
+        RegData = [1,2,3,4,5,-1]
+        input_List = ["ReadWriteBlock1","ReadWriteBlock2","ReadWriteBlock3"]
+        self.DeviceID.modbus_single_write(RegData, input_List)
 
-    c = redis_storage()
-    key=str(DeviceID)
-    c.add_modbus_data(key,data,{'DeviceID': key})
-    c.get_modbus_data(key,data)
-    key_value = 'DeviceID='+key
-    c.mget_modbus_data(key_value)
-    c.info(data, key, {'DeviceID': key})
+        Logging.logger.info("Running Block_read")
+        input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
+        data = self.DeviceID.modbus_block_read(input_list_read)
+        print("Single Write data")
+        print(data)
+        self.write_to_redis(data)
 
-    Logging.logger.info(data)
-
-    Logging.logger.info("Running Block_write")
-    RegData=[1,-3,1] 
-    input_List=["ReadWriteBlock2","ReadWriteBlock1"] 
-    DeviceID.modbus_block_write(RegData,input_List)
+        Logging.logger.info("Running Block_write")
+        RegData=[1,-3,1]
+        input_List=["ReadWriteBlock2","ReadWriteBlock1"]
+        self.DeviceID.modbus_block_write(RegData,input_List)
     
-    Logging.logger.info("Running Block_read")    
-    input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
-    data = DeviceID.modbus_block_read(input_list_read)
+        Logging.logger.info("Running Block_read")
+        input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
+        data = self.DeviceID.modbus_block_read(input_list_read)
+        print("Block Write Data")
+        print(data)
+        self.write_to_redis(data)
 
-    key=str(DeviceID)
-    c.add_modbus_data(key,data,{'DeviceID': key})
-    c.get_modbus_data(key,data)
-    key_value = 'DeviceID='+key
-    c.mget_modbus_data(key_value)
-    c.info(data, key, {'DeviceID': key})
+    def write_to_redis(self,data):
+        Logging.logger.info("{} function has been called".format("write_to_redis()"))
+        c = redis_storage()
+        key = 'Sinexcel_batt_inv_01'
+        c.add_modbus_data(key, data, {'DeviceID': key})
+        key_value = 'DeviceID=' + key
+        self.call_mqtt(key_value)
 
-    Logging.logger.info(data)
-    
-    # sleep(polling_frequency)
+    def call_mqtt(self,value):
+        Logging.logger.info("{} function has been called".format("call_mqtt()"))
+        k = MqttPub()
+        k.get_redis_data(value)
 
 DeviceID = Modbus("Sinexcel_batt_inv_01")
 # polling_frequency = DeviceID.polling_freq()
-ModbusPollFunction(DeviceID)
+m = ModbusPollFunction(DeviceID)
+m.func()
+
 
 
 
