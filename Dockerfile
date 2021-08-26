@@ -1,4 +1,4 @@
-FROM 2307297/pymodbus:latest
+FROM 2307297/pymodbus:aws
 
 ARG VERSION=0.0.0
 
