@@ -34,12 +34,15 @@ class redis_storage:
          :rtype: tuple
       """
       try:
+         count = 0
          Logging.logger.info("{} function has been called".format("add_modbus_data()"))
          flat_json = flatten(data)
          current_datetime = datetime.datetime.utcnow()
          current_timetuple = current_datetime.utctimetuple()
          current_timestamp = calendar.timegm(current_timetuple)
          for k, v in flat_json.items():
+            count = count+1
+            print(count)
             key_add = key + ':' + k
             self.rts.add(key_add, current_timestamp, v, labels=label)
       except Exception as e:
@@ -88,7 +91,7 @@ class redis_storage:
       try:
          Logging.logger.info("{} function has been called".format("mget_modbus_data()"))
          response=self.rts.mget([value], with_labels=True)
-         Logging.logger.info(response)
+         # Logging.logger.info(response)
       except redis.RedisError as e:
          Logging.logger.exception({"error Code":111,"Error Desc":e})
          Logging.logger.exception(e)

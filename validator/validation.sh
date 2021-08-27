@@ -2,23 +2,22 @@
 
 echo "Python Version Check"
 check_python=$(python3 -V | awk '{print $2}')
-if [ $check_python == "3.8.10" ]
+if [ $check_python == "3.5.3" ] || [ $check_python == "3.8.10" ]
 then
   echo "Python Version is :-$check_python"
 else
   echo "Installing Latest Python"
-  apt install python3 -y
+  apt-get install python3 -y
 fi
 
 echo "Check pip Version"
-check_pip=$(pip3 --version | awk '{print $2}')
-if [ $check_pip == "21.1.3" ]
+check_pip=$(python3 -m pip -V | awk '{print $2}')
+if [ $check_pip == "9.0.1" ] || [ $check_pip == "21.1.3" ]
 then
   echo "Pip Version is :-$check_pip"
 else 
   echo "Installing Latest Pip"
   apt-get install python3-pip
-  pip install -U pip
 fi
 
 echo "Check Pymodbus Module"
@@ -28,7 +27,7 @@ then
   echo "Pymodbus Present as:-$check_pymodbus"
 else
   echo "Downloading Pymodbus Module"
-  pip install pymodbus
+  python3 -m pip install pymodbus
 fi
 
 echo "Check RedisTimeSeries Module"
@@ -38,7 +37,7 @@ then
   echo "RedisTimeSeries present as :-$redists"
 else
   echo "Downloading RedisTimeSeries Module"
-  pip install redistimeseries
+  python3 -m pip install redistimeseries
 fi
 
 echo "Check Pytz Module"
@@ -48,17 +47,17 @@ then
   echo "Pytz present as :-$pytz"
 else
   echo "Downloading Pytz Module"
-  pip install pytz
+  python3 -m pip install pytz
 fi
 
 echo "Install Flatten Json"
 flat_json=$(pip list | grep flatten-json | awk '{print $1}')
 if [ $flat_json == "flatten-json" ]
 then
-  echo "FLatten-json present as :-$flat_json"
+  echo "Flatten-json present as :-$flat_json"
 else
   echo "Downloading Flatten-json Module"
-  pip install flatten-json
+  python3 -m pip install flatten-json
 fi
 
 echo "Install Python-DateUtil"
@@ -68,7 +67,7 @@ then
   echo "Date Util present as :-$date_util"
 else
   echo "Downloading Date-Util Module"
-  pip install python-dateutil
+  python3 -m pip install python-dateutil
 fi
 
 echo "Install Datetime"
@@ -78,5 +77,5 @@ then
   echo "DateTime present as :-$datetime"
 else
   echo "Downloading Date-Util Module"
-  pip install Datetime
+  python3 -m pip install Datetime
 fi

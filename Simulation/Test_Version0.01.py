@@ -3,6 +3,7 @@ from Logger.LoggerHandling import Logging
 from Redis_Storage.Time_Series import redis_storage
 from MqTT.MqTTPub import MqttPub
 
+
 class ModbusPollFunction:
 
     def __init__(self,DeviceID):
@@ -25,13 +26,12 @@ class ModbusPollFunction:
         RegData=[1,-3,1]
         input_List=["ReadWriteBlock2","ReadWriteBlock1"]
         self.DeviceID.modbus_block_write(RegData,input_List)
-    
+
         Logging.logger.info("Running Block_read")
         input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
         data = self.DeviceID.modbus_block_read(input_list_read)
         print("Block Write Data")
         print(data)
-        self.write_to_redis(data)
 
     def write_to_redis(self,data):
         Logging.logger.info("{} function has been called".format("write_to_redis()"))
@@ -40,6 +40,7 @@ class ModbusPollFunction:
         c.add_modbus_data(key, data, {'DeviceID': key})
         key_value = 'DeviceID=' + key
         self.call_mqtt(key_value)
+
 
     def call_mqtt(self,value):
         Logging.logger.info("{} function has been called".format("call_mqtt()"))
