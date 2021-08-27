@@ -10,7 +10,6 @@ class MqttPub:
         try:
             Logging.logger.info("{} function has been called".format("get_redis_data()"))
             c = redis_storage()
-            k = c.mget_modbus_data(value)
-            print(k)
+            c.mget_modbus_data(value)
         except Exception as e:
              print(e)

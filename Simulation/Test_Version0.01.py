@@ -18,7 +18,6 @@ class ModbusPollFunction:
         Logging.logger.info("Running Block_read")
         input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
         data = self.DeviceID.modbus_block_read(input_list_read)
-        print("Single Write data")
         print(data)
         self.write_to_redis(data)
 
@@ -30,8 +29,8 @@ class ModbusPollFunction:
         Logging.logger.info("Running Block_read")
         input_list_read = ["UserDataBlock1","ReadWriteBlock1","ReadWriteBlock2"]
         data = self.DeviceID.modbus_block_read(input_list_read)
-        print("Block Write Data")
         print(data)
+        self.write_to_redis(data)
 
     def write_to_redis(self,data):
         Logging.logger.info("{} function has been called".format("write_to_redis()"))
