@@ -21,7 +21,7 @@ else
 fi
 
 echo "Check Pymodbus Module"
-check_pymodbus=$(pip list | grep pymodbus | awk '{print $1}')
+check_pymodbus=$(python3 -m pip list | grep pymodbus | awk '{print $1}')
 if [ $check_pymodbus == "pymodbus" ]
 then
   echo "Pymodbus Present as:-$check_pymodbus"
@@ -31,7 +31,7 @@ else
 fi
 
 echo "Check RedisTimeSeries Module"
-redists=$(pip list | grep redistimeseries | awk '{print $1}')
+redists=$(python3 -m pip list | grep redistimeseries | awk '{print $1}')
 if [ $redists == "redistimeseries" ]
 then
   echo "RedisTimeSeries present as :-$redists"
@@ -41,7 +41,7 @@ else
 fi
 
 echo "Check Pytz Module"
-pytz=$(pip list | grep pytz | awk '{print $1}')
+pytz=$(python3 -m pip list | grep pytz | awk '{print $1}')
 if [ $pytz == "pytz" ]
 then
   echo "Pytz present as :-$pytz"
@@ -51,7 +51,7 @@ else
 fi
 
 echo "Install Flatten Json"
-flat_json=$(pip list | grep flatten-json | awk '{print $1}')
+flat_json=$(python3 -m pip list | grep flatten-json | awk '{print $1}')
 if [ $flat_json == "flatten-json" ]
 then
   echo "Flatten-json present as :-$flat_json"
@@ -61,7 +61,7 @@ else
 fi
 
 echo "Install Python-DateUtil"
-date_util=$(pip list | grep python-dateutil | awk '{print $1}')
+date_util=$(python3 -m pip list | grep python-dateutil | awk '{print $1}')
 if [ $date_util == "python-dateutil" ]
 then
   echo "Date Util present as :-$date_util"
@@ -71,7 +71,7 @@ else
 fi
 
 echo "Install Datetime"
-datetime=$(pip list | grep DateTime | awk '{print $1}')
+datetime=$(python3 -m pip list | grep DateTime | awk '{print $1}')
 if [ $datetime == "DateTime" ]
 then
   echo "DateTime present as :-$datetime"

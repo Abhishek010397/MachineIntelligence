@@ -5,11 +5,13 @@ from time import sleep
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 from pymodbus.exceptions import ModbusIOException, ParameterException, ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.payload import BinaryPayloadBuilder
 import json
 from pymodbus.constants import Endian
 from Modbus.ModbusConfigJsonDecoder import Modbusconfigjsondecoder
 from Logger.LoggerHandling import Logging
 from Modbus.UtilityClass import Decoder
+import re
 
 
 class Modbus:
@@ -112,35 +114,59 @@ class Modbus:
                 Iterating through input_list to return data Accordingly
                 '''
                 key_pair_values = self.device.keys_get_function()
-                for input_values in input_list:
-                    nested_json_data = {}
+                if(not input_list):
                     for k, v in key_pair_values.items():
-                        if (input_values == k):
-                            dict_values_of_k = v[0]
-                            unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),dict_values_of_k)
-                            print(unitId, offset, length)
-                            response = Device_connection_master.read_holding_registers(offset, length, unit=unitId)
-                            decoder = BinaryPayloadDecoder.fromRegisters(response.registers, byteorder=Endian.Big)
+                        final_json_data[k] = v    
+                else:
+                    for input_values in input_list:
+                        nested_json_data = {}
+                        for k, v in key_pair_values.items():
+                            if (input_values == k):
+                                if(input_values=="DeviceInfoBlock"):
+                                    dict_values_of_k = v[0]
+                                    unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),dict_values_of_k)
+                                    print(unitId, offset, length)
+                                    res = Device_connection_master.read_holding_registers(offset, 10, unit=unitId)
+                                    print(res)
+                                    decoder = BinaryPayloadDecoder.fromRegisters(res.registers, byteorder=Endian.Big)
+                                    x1=decoder.decode_string(32)
+                                    x1=x1.decode("utf-8")
+                                    start,end=0,0
+                                    for RegisterName_indexing in range(len(dict_values_of_k["RegisterName"])):
+                                        nested_json_data[str(dict_values_of_k["RegisterName"][RegisterName_indexing])]=x1[start:end+2]
+                                        start=end+2
+                                        end=5
+                                    final_json_data[str(input_values)] = dict(nested_json_data)
+                                    del nested_json_data 
+                                else:
+                                    dict_values_of_k = v[0]
+                                    unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),dict_values_of_k)
+                                    print(unitId, offset, length)
+                                    response = Device_connection_master.read_holding_registers(offset, length, unit=unitId)
+                                    decoder = BinaryPayloadDecoder.fromRegisters(response.registers, byteorder=Endian.Big)
 
-                            for RegisterName_indexing in range(len(dict_values_of_k["RegisterName"])):
+                                    for RegisterName_indexing in range(len(dict_values_of_k["RegisterName"])):
 
-                                datatype_response = self.device.dataTypeResponse(decoder, dict_values_of_k["DataType"][RegisterName_indexing])
-                                """
-                                Parsing the Data uisng s16 function
-                                """
-                                datatype_response=self.value_parsing.s16(datatype_response)
-                                """
-                                Checking Validation of Data 
-                                """
-                                data_response_validation = self.device.DataResponseValidation(datatype_response,RegisterName_indexing,dict_values_of_k)
-                                if (data_response_validation == True):
-                                    """
-                                    Multiplying the Actual Data with Multiplier
-                                    """
-                                    nested_json_data[str(dict_values_of_k["RegisterName"][RegisterName_indexing])] = round((datatype_response)*(eval(dict_values_of_k["Multiplier"][RegisterName_indexing])), 3)
-                                    
-                            final_json_data[str(input_values)] = dict(nested_json_data)
-                            del nested_json_data
+                                        datatype_response = self.device.dataTypeResponse(decoder, dict_values_of_k["DataType"][RegisterName_indexing])
+                                        if(isinstance(datatype_response, float)==True):
+                                            datatype_response=datatype_response
+                                        else:
+                                            """
+                                            Parsing the Data uisng s16 function
+                                            """
+                                            datatype_response=self.value_parsing.s16(datatype_response)
+                                        """
+                                        Checking Validation of Data 
+                                        """
+                                        data_response_validation = self.device.DataResponseValidation(datatype_response,RegisterName_indexing,dict_values_of_k)
+                                        if (data_response_validation == True):
+                                            """
+                                            Multiplying the Actual Data with Multiplier
+                                            """
+                                            nested_json_data[str(dict_values_of_k["RegisterName"][RegisterName_indexing])] = round((datatype_response)*(eval(dict_values_of_k["Multiplier"][RegisterName_indexing])), 3)
+                                            
+                                    final_json_data[str(input_values)] = dict(nested_json_data)
+                                    del nested_json_data
             else:
                 Logging.logger.exception(ConnectionError)
                 raise ConnectionError
@@ -197,18 +223,27 @@ class Modbus:
                                 RegData,RegData1=self.device.Data_to_be_written(RegData1,dict_values_of_k)
                             lst+=RegData
                             if(dict_values_of_k["RegisterType"][0].lower()=="read"):
-                                Logging.logger.warning("Input_value {} is Read Data type".format(input_values))
+                                Logging.logger.warning("Input_value {} is Read Data type,can't write into register".format(input_values)) 
                             else:
                                 unitId = self.device.Unitid_singleWrite(self.device_setting(), dict_values_of_k)
                                 data_check_status = self.device.DataCheckStatus(RegData, dict_values_of_k)
+                        
                                 if (data_check_status == True):
                                     for register_number_value in range(len(dict_values_of_k["RegisterNumber"])):
-
-                                        write_result = Device_connection_master.write_registers(
-                                            int(dict_values_of_k["RegisterNumber"][register_number_value]),
-                                            int(self.value_parsing.signed(int(RegData[register_number_value]))), unit=unitId)
-                                    
-                                        write_result_json[str(dict_values_of_k["RegisterNumber"][register_number_value])]=write_result
+                                        y=("".join(x for x in (re.findall("[a-zA-Z]",dict_values_of_k["DataType"][register_number_value]))).lower())
+                                        if(y=="float"):
+                                            print(self.device.write_into_float(float(RegData[register_number_value])))
+                                            write_result = Device_connection_master.write_registers(
+                                                int(dict_values_of_k["RegisterNumber"][register_number_value]),
+                                                self.device.write_into_float(float(RegData[register_number_value])), unit=unitId,skip_encode=True)
+                                        
+                                            write_result_json[str(dict_values_of_k["RegisterNumber"][register_number_value])]=write_result
+                                        else:
+                                            write_result = Device_connection_master.write_registers(
+                                                int(dict_values_of_k["RegisterNumber"][register_number_value]),
+                                                self.value_parsing.signed(int(RegData[register_number_value])), unit=unitId)
+                                        
+                                            write_result_json[str(dict_values_of_k["RegisterNumber"][register_number_value])]=write_result
                                 else:
                                     Logging.logger.warning("Can't Write Data into Register,Invalid Data")
                                     raise ValueError
@@ -286,10 +321,18 @@ class Modbus:
                                 data_check_status = self.device.DataCheckStatus(RegData, dict_values_of_k)
                                 unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),
                                                                                         dict_values_of_k)
+                                
                                 if (data_check_status == True):
-                                    write_result=Device_connection_master.write_registers(offset, 
-                                        [(self.value_parsing.signed(RegData[register_number_value])) for register_number_value in range(len(dict_values_of_k["RegisterNumber"]))], unit=unitId)
-                                    write_result_json['offset']=write_result
+                                    y=("".join(x for x in (re.findall("[a-zA-Z]",dict_values_of_k["DataType"][0]))).lower())
+                                    if(y!="float"):
+                                        write_result=Device_connection_master.write_registers(offset, 
+                                            [(self.value_parsing.signed(RegData[register_number_value])) for register_number_value in range(len(dict_values_of_k["RegisterNumber"]))], unit=unitId)
+                                        write_result_json['offset']=write_result
+                                    else:
+                                        var=[self.device.write_into_float(float(RegData[register_number_value])) if(("".join(x for x in (re.findall("[a-zA-Z]",dict_values_of_k["DataType"][register_number_value]))).lower())=="float") else self.value_parsing.signed(RegData[register_number_value]) for register_number_value in range(len(dict_values_of_k["RegisterNumber"]))]
+                                        write_result=Device_connection_master.write_registers(offset, 
+                                            var, unit=unitId,skip_encode=True)
+                                        write_result_json['offset']=write_result
                                 else:
                                     Logging.logger.warning("Can't Write Data into Register,Invalid Data")
                                     raise ValueError

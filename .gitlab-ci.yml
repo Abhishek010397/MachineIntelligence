@@ -1,6 +1,7 @@
 stages:    
   - VALIDATING-THE-SERVER-WITH-DEPENDENCIES      
   - TEST-BLOCK-READ-SIMULATION
+  - RUN-MODBUS
   - BUILD-PYTHON-DOCS
 
 
@@ -36,6 +37,27 @@ test_block_read_with_simulator:
   rules:
     - if: $TEST == 'YES'
 
+
+run_modbus_against_simulator:
+  image: 2307297/py-redis:0.1
+  stage: RUN-MODBUS
+  only:
+    - master
+    - test
+  tags:
+    - python-cicd-runners
+  script:
+    - redis-server --loadmodule /etc/redis/redistimeseries.so --daemonize yes
+    - ps aux | grep redis
+    - export PYTHONPATH=$PYTHONPATH:/builds/i4sens/new_code/
+    - python3 Simulation/server.py &
+    - python3 Simulation/Sample_Write_function.py 
+    - python3 Modbus/ModbusPolling.py -d Sinexcel_batt_inv_01 -l ReadWriteBlock1 -l ReadWriteBlock2 -l ReadWriteBlock3
+  artifacts:
+    paths:
+      - application_name.log
+  rules:
+    - if: $TEST == 'YES'
 
 build_the_documentation:
   image: docker:19.03.12

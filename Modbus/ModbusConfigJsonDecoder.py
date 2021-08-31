@@ -3,7 +3,8 @@ from pymodbus.client.sync import ModbusSerialClient as ModbusClientRTU
 from Logger.LoggerHandling import Logging
 import sys
 from collections import deque
-
+from pymodbus.payload import BinaryPayloadBuilder
+from pymodbus.constants import Endian
 class Modbusconfigjsondecoder:
 
     """
@@ -690,3 +691,19 @@ class Modbusconfigjsondecoder:
             for left_values in range(queue_size):
                 lst1.append(q.popleft())
         return (lst,lst1)
+    
+    def write_into_float(self,value,):
+        """
+            This function will return the Set of values to be written into Respective Registers
+
+            :param Response_validation: `dict_values_of_k`, `RegData` 
+            :raises Exception: AttributeError or TypeError
+            :return: it checks and returns the set of Data to be written into Registers
+            :rtype: list
+
+        """
+        builder=BinaryPayloadBuilder(byteorder =Endian.Big, wordorder=Endian.Little)
+        builder.add_16bit_float(value)
+        payload=builder.build()
+        return(payload[0])
+        

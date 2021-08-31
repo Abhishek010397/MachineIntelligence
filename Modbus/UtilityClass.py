@@ -5,7 +5,6 @@ from pymodbus.payload import BinaryPayloadDecoder
 from struct import pack, unpack
 import struct
 import time
-import logging
 import json
 import datetime as dt
 from datetime import datetime
@@ -104,6 +103,16 @@ class Decoder:
             Logging.logger.exception(e)
         finally:
             return retData
+    
+    def string16(self,value):
+        count = 4 #Read 4 16bit registers
+    
+        result = client.read_holding_registers(25000,count)
+        
+        for i in range(count):
+            result.registers[i] = struct.unpack("<H", struct.pack(">H", result.registers[i]))[0]
+        
+        decoder = BinaryPayloadDecoder.fromRegisters(result.registers)
 
     def fromRegisters(self,registers, byteorder):
 
