@@ -1,15 +1,15 @@
 import json
+import time
 from Logger.LoggerHandling import Logging
 from Redis_Storage.Time_Series import redis_storage
 from paho.mqtt import client as mqtt_client
 import argparse
-from conf import broker, port, mqttpub_json
-
+from conf import broker, port,mqttpub_json
 
 class MqttPub:
 
     def __init__(self,client_id):
-        self.client = mqtt_client.Client(client_id)
+        self.client = mqtt_client.Client(client_id,clean_session=True)
 
     def get_json_key_variable(self,client_id):
         try:
@@ -23,8 +23,12 @@ class MqttPub:
                                 if (key.lower() == "deviceid"):
                                     k = 'DeviceID='+value
                                     return k
+                else:
+                    Logging.logger.error("ClientID IS NOT PRESENT")
+                    exit()
         except Exception as e:
-            print(e)
+            Logging.logger.exception({"error Code": 111, "Error Desc": e})
+            Logging.logger.exception(e)
         finally:
             f.close()
 
@@ -38,18 +42,19 @@ class MqttPub:
                         if (key.lower() == "topic"):
                             return value
         except Exception as e:
-            print(e)
+            Logging.logger.exception({"error Code": 112, "Error Desc": e})
+            Logging.logger.exception(e)
         finally:
             f.close()
 
     def on_connect(self, rc):
         try:
-            Logging.logger.info("{} function has been called".format("mqtt_publish()"))
+            Logging.logger.info("{} function has been called".format("on_connect()"))
             if rc == 0:
-                print("Connected to MQTT Broker!")
+                Logging.logger.info("Connected to MQTT Broker!")
                 return True
             else:
-                print("Failed to connect, return code %d\n", rc)
+                Logging.logger.info("Failed to connect, return code %d\n", rc)
                 return False
         except Exception as e:
             Logging.logger.exception(e)
@@ -64,26 +69,34 @@ class MqttPub:
         except Exception as e:
             Logging.logger.exception(e)
 
+    def split_data(self,data):
+        try:
+            Logging.logger.info("{} function has been called".format("split_data()"))
+            count = 0
+            for i in data:
+                chunks = json.dumps(i)
+                count = count + 1
+                Logging.logger.info('{0} COUNTER VALUE'.format(count))
+                self.mqtt_publish(chunks)
+        except Exception as e:
+            Logging.logger.exception(e)
+
     def mqtt_publish(self, userdata):
         try:
-            count = 0
-            topic = self.json_variable_get()
             Logging.logger.info("{} function has been called".format("mqtt_publish()"))
-            rc = self.client.connect(broker, port)
+            topic = self.json_variable_get()
+            rc = self.client.connect(broker,port)
             flag = self.on_connect(rc)
             if flag == True:
-                for i in userdata:
-                    chunks = json.dumps(i)
-                    result = self.client.publish(topic, chunks, qos=1)
-                    count = count+1
-                    Logging.logger.info(count)
-                    status = result[0]
-                    if status == 0:
-                        print(f"Send `{chunks}` to topic `{topic}`")
-                    else:
-                        print(f"Failed to send message to topic {topic}")
+                result = self.client.publish(topic, userdata, retain=True,qos=0)
+                status = result[0]
+                if status == 0:
+                    print(f"Send `{userdata}` to topic `{topic}`")
+                    time.sleep(5)
+                else:
+                    print(f"Failed to send message to topic {topic}")
             else:
-                print(flag)
+                Logging.logger.info("CONNECTION ERROR")
         except Exception as e:
             Logging.logger.exception(e)
 
@@ -96,9 +109,7 @@ def main():
     k = MqttPub(args.client_id)
     value = k.get_json_key_variable(args.client_id)
     data = k.get_redis_data(value)
-    k.mqtt_publish(data)
-
-
+    k.split_data(data)
 
 if __name__ == "__main__":
     main()
