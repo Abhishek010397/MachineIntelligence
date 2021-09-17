@@ -4,7 +4,7 @@ from Logger.LoggerHandling import Logging
 from Redis_Storage.Time_Series import redis_storage
 from paho.mqtt import client as mqtt_client
 import argparse
-from conf import broker, port,mqttpub_json
+from MqTT.conf import broker, port,mqttpub_json
 
 class MqttPub:
 

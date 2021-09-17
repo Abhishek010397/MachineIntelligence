@@ -1,18 +1,13 @@
-import sys
-import traceback
 from struct import pack, unpack, error
-from time import sleep
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 from pymodbus.exceptions import ModbusIOException, ParameterException, ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.payload import BinaryPayloadBuilder
 import json
 from pymodbus.constants import Endian
 from Modbus.ModbusConfigJsonDecoder import Modbusconfigjsondecoder
 from Logger.LoggerHandling import Logging
 from Modbus.UtilityClass import Decoder
 import re
-
 
 class Modbus:
     """
@@ -28,23 +23,9 @@ class Modbus:
         """
         Constructor method
         """
-        self.device = Modbusconfigjsondecoder(DeviceID)
+        self.DeviceID=DeviceID
+        self.device = Modbusconfigjsondecoder(self.DeviceID)
         self.value_parsing= Decoder()
-
-    def device_setting(self):
-        """ This function calls the getdevicesettings() function defined in Modbusconfigjsondecoder Module to get the Settings
-            Information for particular `Device ID`
-
-        :return: getdevicesettings() i.e (setting_information for each deviceID)
-        :rtype: json
-
-        """
-        try:
-            Logging.logger.info("Calling {} function".format("getdevicesettings()"))
-        except Exception as e:
-            Logging.logger.exception(e)
-        finally:
-            return (self.device.getdevicesettings())
 
     def polling_freq(self):
         """ This function calls the Get_polling_freq() function defined in Modbusconfigjsondecoder Module to get the poll_frequency
@@ -76,13 +57,13 @@ class Modbus:
             connect_type = self.device.ConnectionType()
             if (connect_type == "TCP"):
 
-                IPAddress_value, Port_value = self.device.Tcp_function(self.device_setting())
+                IPAddress_value, Port_value = self.device.Tcp_function(self.device.getdevicesettings())
                 Device_connection_master = ModbusClient(IPAddress_value, int(Port_value))
                 device_connector = Device_connection_master.connect()
                 return (Device_connection_master, device_connector)
             elif (connect_type == "RTU"):
 
-                Device_connection_master = self.device.RTU_function(self.device_setting())
+                Device_connection_master = self.device.RTU_function(self.device.getdevicesettings())
                 device_connector = Device_connection_master.connect()
                 return (Device_connection_master, device_connector)
         except Exception as e:
@@ -124,10 +105,9 @@ class Modbus:
                             if (input_values == k):
                                 if(input_values=="DeviceInfoBlock"):
                                     dict_values_of_k = v[0]
-                                    unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),dict_values_of_k)
-                                    print(unitId, offset, length)
+                                    unitId, offset, length = self.device.Offset_Length_Unitid(self.device.getdevicesettings(),dict_values_of_k)
+                                    # print(unitId, offset, length)
                                     res = Device_connection_master.read_holding_registers(offset, 10, unit=unitId)
-                                    print(res)
                                     decoder = BinaryPayloadDecoder.fromRegisters(res.registers, byteorder=Endian.Big)
                                     x1=decoder.decode_string(32)
                                     x1=x1.decode("utf-8")
@@ -140,8 +120,8 @@ class Modbus:
                                     del nested_json_data 
                                 else:
                                     dict_values_of_k = v[0]
-                                    unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),dict_values_of_k)
-                                    print(unitId, offset, length)
+                                    unitId, offset, length = self.device.Offset_Length_Unitid(self.device.getdevicesettings(),dict_values_of_k)
+                                    # print(unitId, offset, length)
                                     response = Device_connection_master.read_holding_registers(offset, length, unit=unitId)
                                     decoder = BinaryPayloadDecoder.fromRegisters(response.registers, byteorder=Endian.Big)
 
@@ -152,7 +132,7 @@ class Modbus:
                                             datatype_response=datatype_response
                                         else:
                                             """
-                                            Parsing the Data uisng s16 function
+                                            Parsing the Data using s16 function
                                             """
                                             datatype_response=self.value_parsing.s16(datatype_response)
                                         """
@@ -164,7 +144,9 @@ class Modbus:
                                             Multiplying the Actual Data with Multiplier
                                             """
                                             nested_json_data[str(dict_values_of_k["RegisterName"][RegisterName_indexing])] = round((datatype_response)*(eval(dict_values_of_k["Multiplier"][RegisterName_indexing])), 3)
-                                            
+                                        # else:
+                                        #     Logging.logger.error("Please check Data Range values, and fix that")
+
                                     final_json_data[str(input_values)] = dict(nested_json_data)
                                     del nested_json_data
             else:
@@ -225,7 +207,7 @@ class Modbus:
                             if(dict_values_of_k["RegisterType"][0].lower()=="read"):
                                 Logging.logger.warning("Input_value {} is Read Data type,can't write into register".format(input_values)) 
                             else:
-                                unitId = self.device.Unitid_singleWrite(self.device_setting(), dict_values_of_k)
+                                unitId = self.device.Unitid_singleWrite(self.device.getdevicesettings(), dict_values_of_k)
                                 data_check_status = self.device.DataCheckStatus(RegData, dict_values_of_k)
                         
                                 if (data_check_status == True):
@@ -319,7 +301,7 @@ class Modbus:
                                 Logging.logger.warning("Input_value {} is Read Data type".format(input_values))
                             else:
                                 data_check_status = self.device.DataCheckStatus(RegData, dict_values_of_k)
-                                unitId, offset, length = self.device.Offset_Length_Unitid(self.device_setting(),
+                                unitId, offset, length = self.device.Offset_Length_Unitid(self.device.getdevicesettings(),
                                                                                         dict_values_of_k)
                                 
                                 if (data_check_status == True):
@@ -375,9 +357,3 @@ class Modbus:
                 elif(dict_values_of_k["RegisterType"][0].lower()=="write"):
                     Logging.logger.info(write_result_json)
             Device_connection_master.close()
-
-
-
-
-        
-

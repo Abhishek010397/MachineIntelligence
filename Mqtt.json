@@ -1,7 +1,0 @@
-{
-	"clientId": "onslowBHP_BMS",
-	"tags": {
-		"DeviceID": "Sinexcel_batt_inv_01",
-		"topic": "onslowBHP_BMS/BatteryData"
-	}
-}

@@ -1,10 +1,10 @@
 import json
 from pymodbus.client.sync import ModbusSerialClient as ModbusClientRTU
 from Logger.LoggerHandling import Logging
-import sys
 from collections import deque
 from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.constants import Endian
+
 class Modbusconfigjsondecoder:
 
     """
@@ -45,10 +45,7 @@ class Modbusconfigjsondecoder:
                             if(k2 == "DeviceSettings"):
                                 value = v2[0]
                                 json_object = json.dumps(value)
-                                break
-                    break
-                else:
-                    Logging.logger.info("DeviceID not present")
+                                return (json_object)
         except IOError:
             raise FileNotFoundError('File Not Found')
         except FileNotFoundError as e:
@@ -57,7 +54,6 @@ class Modbusconfigjsondecoder:
             Logging.logger.exception(e)
         finally:
             f.close()
-            return (json_object)
 
     def getdeviceinfo(self):
         """
@@ -203,6 +199,7 @@ class Modbusconfigjsondecoder:
         """
 
         try:
+            # print("device_setting",device_setting)
             Logging.logger.info("{} function has been called".format("Tcp_function()"))
             device_setting_json_value = json.loads(device_setting)
             IPAddress_value = device_setting_json_value["IPAddress"]
@@ -215,6 +212,7 @@ class Modbusconfigjsondecoder:
             Logging.logger.exception(e)
         finally:
             return (IPAddress_value, Port_value)
+            
 
     def RTU_function(self, device_setting):
         """
@@ -377,7 +375,6 @@ class Modbusconfigjsondecoder:
                 return (decoder.skip_bytes(8))
             elif(str(datatype_value) == "64float" or str(datatype_value) == "64float2"):
                 return (decoder.decode_64bit_float())
-
         except IOError:
             raise TypeError
         except IOError:
@@ -386,8 +383,6 @@ class Modbusconfigjsondecoder:
             Logging.logger.exception(e)
         except Exception as e:
             Logging.logger.exception(e)
-        finally:
-            pass
 
     def GetAllKeysFrom_UserDataBlock1(self, UserDataBlock1):
         """
@@ -452,6 +447,7 @@ class Modbusconfigjsondecoder:
                                     if(k == str(value)):
                                         for k2, v2 in v.items():
                                             d[k2] = v2
+            return (d)
         except IOError:
             raise FileNotFoundError('File Not Found')
         except FileNotFoundError as e:
@@ -460,7 +456,6 @@ class Modbusconfigjsondecoder:
             Logging.logger.exception(e)
         finally:
             f.close()
-            return (d)
 
     def Unitid_singleWrite(self, device_setting, dict_values_of_k):
         """
@@ -533,12 +528,19 @@ class Modbusconfigjsondecoder:
         flag = 0
         try:
             Logging.logger.info("{} function has been called".format("DataResponseValidation()"))
-            if(datatype_response >= float(dict_values_of_k["DataRangeMin"][RegisterName_indexing]) and datatype_response <= float(dict_values_of_k["DataRangeMax"][RegisterName_indexing]) ):
-                flag = 1
+            if(not (dict_values_of_k["DataRangeMin"][RegisterName_indexing])):
+                raise AttributeError(dict_values_of_k["DataRangeMin"])
+            elif(not (dict_values_of_k["DataRangeMax"][RegisterName_indexing])):
+                raise AttributeError(dict_values_of_k["DataRangeMax"])
             else:
-                flag = 0
+                if(datatype_response >= float(dict_values_of_k["DataRangeMin"][RegisterName_indexing]) and datatype_response <= float(dict_values_of_k["DataRangeMax"][RegisterName_indexing]) ):
+                    flag = 1
+                else:
+                    flag = 0 
         except IOError:
             Logging.logger.exception(TypeError)
+        except AttributeError as e:
+            Logging.logger.error("{} is empty please provide value".format(e))
         except Exception as e:
             Logging.logger.exception(e)
         finally:
@@ -590,6 +592,10 @@ class Modbusconfigjsondecoder:
                                 flag+=1
                             elif(k==str(value) and k2=="UserDataBlock1"):
                                 flag+=1
+            if(flag==3):
+                return (True)
+            else:
+                return (False)
         except IOError:
             Logging.logger.exception(TypeError)
         except TypeError as e:
@@ -600,10 +606,6 @@ class Modbusconfigjsondecoder:
             Logging.logger.exception(e)    
         finally:
             f.close()
-            if(flag==3):
-                return (True)
-            else:
-                return (False)
         
     def Response_validation(self,key_pair_values,response,RegData, input_List):
 
@@ -694,7 +696,7 @@ class Modbusconfigjsondecoder:
     
     def write_into_float(self,value,):
         """
-            This function will return the Set of values to be written into Respective Registers
+            This function will return respective 
 
             :param Response_validation: `dict_values_of_k`, `RegData` 
             :raises Exception: AttributeError or TypeError

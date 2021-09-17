@@ -37,13 +37,14 @@ class ModbusPollFunction:
         c = redis_storage()
         key = 'Sinexcel_batt_inv_01'
         c.add_modbus_data(key, data, {'DeviceID': key})
-        key_value = 'DeviceID=' + key
-        self.call_mqtt(key_value)
+        # key_value = 'DeviceID=' + key
+        # self.call_mqtt(key_value)
 
 
     def call_mqtt(self,value):
         Logging.logger.info("{} function has been called".format("call_mqtt()"))
-        k = MqttPub()
+        client_id = "onslowBHP_BMS"
+        k = MqttPub(client_id)
         k.get_redis_data(value)
 
 DeviceID = Modbus("Sinexcel_batt_inv_01")

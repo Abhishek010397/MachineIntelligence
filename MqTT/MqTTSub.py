@@ -1,47 +1,84 @@
-from datetime import datetime
 import paho.mqtt.client as mqtt
+import argparse
+from MqTT.conf import broker, port, mqttsub_json
+import json
+from Logger.LoggerHandling import Logging
+from InFluxDB.InFlux import InfluxDB
 
-broker_address=""
+class MqTTSub:
 
+    def __init__(self, clientid):
+        self.client = mqtt.Client(clientid)
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+        Logging.logger.info("Connecting To MqTT Broker")
+        self.client.connect(broker, port)
+        self.client.loop_forever()
 
-def on_message(client, userdata, message):
-    print("Message Function Triggered")
-    time = datetime.now()
-    print(time)
-    print("message received  ", str(message.payload.decode("utf-8")),\
-          "topic", message.topic, "retained ", message.retain)
-    if message.retain == 1:
-        print("This is a retained message")
+    def get_json_key_variable(clientid):
+        Logging.logger.info("{} function has been called".format("get_json_key_variable()"))
+        try:
+            f = open(mqttsub_json, 'r')
+            data = json.load(f)
+            for key, value in data.items():
+                if (key.lower() == "clientid" and clientid == value):
+                    return value
+                else:
+                    Logging.logger.error("ClientID IS NOT PRESENT")
+                    exit()
+        except Exception as e:
+            Logging.logger.exception({"error Code": 111, "Error Desc": e})
+            Logging.logger.exception(e)
+        finally:
+            f.close()
 
+    def json_variable_get(self):
+        Logging.logger.info("{} function has been called".format("json_variable_get()"))
+        try:
+            f = open(mqttsub_json, 'r')
+            data = json.load(f)
+            for key, value in data.items():
+                if (key.lower() == "tags"):
+                    for key, value in value.items():
+                        if (key.lower() == "topic"):
+                            return value
+        except Exception as e:
+            Logging.logger.exception({"error Code": 112, "Error Desc": e})
+            Logging.logger.exception(e)
+        finally:
+            f.close()
 
+    def on_message(self, client, userdata, message):
+        Logging.logger.info("{} function has been called".format("on_message()"))
+        Message=str(message.payload.decode("utf-8"))
+        Topic = str(message.topic)
+        Logging.logger.info('Message %s Recieved From Topic %s' % (Message,Topic))
+        if message.retain == 1:
+            Logging.logger.info("Message Retained")
+            dbname=''
+            c=InfluxDB(dbname)
+            c.on_message_fetch(Message,dbname)
+        else:
+            Logging.logger.error("Message Not Retained")
 
-def on_connect(client, userdata, flags, rc):
-    if rc==0:
-        print("connected OK Returned code",rc)
-        print("Subscribing to topic")
-        client.subscribe("", qos=2)
-    else:
-        print("Bad connection Returned code",rc)
+    def on_connect(self, client, userdata, flags, rc):
+        Logging.logger.info("{} function has been called".format("on_connect()"))
+        if rc == 0:
+            Logging.logger.info("{} Connection OK, Returned code".format(rc))
+            Logging.logger.info("Subscribing to topic")
+            topic = self.json_variable_get()
+            client.subscribe(topic,qos=0)
+        else:
+            Logging.logger.error("{} Bad Connection Error".format(rc))
 
-def on_disconnect(client, userdata, rc):
-   print("Client Got Disconnected")
-   print('rc value '+str(rc))
-   time = datetime.now()
-   print(time)
-   if rc != 0:
-       print('Unexpected MQTT disconnection. Will auto-reconnect')
-   else:
-       print('rc value:' + str(rc))
-
-
-def mqttConnection():
-    client = mqtt.Client("")
-    client.on_connect = on_connect
-    # client.on_disconnect =  on_disconnect
-    client.on_message = on_message
-    print("connecting to broker")
-    client.connect(broker_address, 1883, 60)
-    client.loop_forever()
+def main():
+    parser = argparse.ArgumentParser(prog='MqTTSub', description='MqTTSub interface',
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('-c', '--client_id', type=str, help='Name of client id', required=True)
+    args = parser.parse_args()
+    value = MqTTSub.get_json_key_variable(args.client_id)
+    MqTTSub(value)
 
 if __name__ == "__main__":
-    mqttConnection()
+    main()
+

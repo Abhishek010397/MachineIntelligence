@@ -1,15 +1,7 @@
-""" Importing Modules """
 from pymodbus.constants import Endian
-from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
 from struct import pack, unpack
 import struct
-import time
-import json
-import datetime as dt
-from datetime import datetime
-from dateutil import tz
-import json
 from Logger.LoggerHandling import Logging
 
 class Decoder:
