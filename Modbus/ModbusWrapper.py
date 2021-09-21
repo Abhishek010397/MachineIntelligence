@@ -1,7 +1,11 @@
+import sys
+import traceback
 from struct import pack, unpack, error
+from time import sleep
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 from pymodbus.exceptions import ModbusIOException, ParameterException, ConnectionException
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.payload import BinaryPayloadBuilder
 import json
 from pymodbus.constants import Endian
 from Modbus.ModbusConfigJsonDecoder import Modbusconfigjsondecoder
@@ -83,12 +87,12 @@ class Modbus:
             if(self.device.JsonValidation()==True):
                 pass
             else:
-                Logging.logger.warning("DeviceID absent, please check")
+                Logging.logger.warning("Error in Json Format,please check")
                 raise AttributeError
-            Device_connection_master, device_connector = self.connect_function()
             '''
             Checking if My Connection has Connected to Server 
             '''
+            Device_connection_master, device_connector = self.connect_function()
             print(Device_connection_master, device_connector)
             if (device_connector == True):
                 '''
@@ -106,7 +110,7 @@ class Modbus:
                                 if(input_values=="DeviceInfoBlock"):
                                     dict_values_of_k = v[0]
                                     unitId, offset, length = self.device.Offset_Length_Unitid(self.device.getdevicesettings(),dict_values_of_k)
-                                    # print(unitId, offset, length)
+
                                     res = Device_connection_master.read_holding_registers(offset, 10, unit=unitId)
                                     decoder = BinaryPayloadDecoder.fromRegisters(res.registers, byteorder=Endian.Big)
                                     x1=decoder.decode_string(32)
@@ -121,7 +125,7 @@ class Modbus:
                                 else:
                                     dict_values_of_k = v[0]
                                     unitId, offset, length = self.device.Offset_Length_Unitid(self.device.getdevicesettings(),dict_values_of_k)
-                                    # print(unitId, offset, length)
+                                    
                                     response = Device_connection_master.read_holding_registers(offset, length, unit=unitId)
                                     decoder = BinaryPayloadDecoder.fromRegisters(response.registers, byteorder=Endian.Big)
 
@@ -168,12 +172,20 @@ class Modbus:
         except TypeError as e:
             final_json_data={"error Code":106,"Error Desc":"Type Error"}
             Logging.logger.exception(e)
+        except UnboundLocalError as e:
+            final_json_data={"error Code":107,"Error Desc":"Unbound Error, Due to error in Json file(check json once)"}
+            Logging.logger.exception(e)
         except Exception as e:
             final_json_data={"error Code":105,"Error Desc":"User Related Error"}
             Logging.logger.exception(e)
         finally:
             Device_connection_master.close()
-            return (final_json_data)
+            if(bool(final_json_data)==False):
+                Logging.logger.warning({"check {} provided,empty json returned".format("input list")})
+                return (final_json_data)
+            else:
+                return (final_json_data)
+            
 
     def modbus_single_write(self, RegData, input_List):
 

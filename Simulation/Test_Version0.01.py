@@ -37,8 +37,8 @@ class ModbusPollFunction:
         c = redis_storage()
         key = 'Sinexcel_batt_inv_01'
         c.add_modbus_data(key, data, {'DeviceID': key})
-        # key_value = 'DeviceID=' + key
-        # self.call_mqtt(key_value)
+        key_value = 'DeviceID=' + key
+        self.call_mqtt(key_value)
 
 
     def call_mqtt(self,value):
@@ -51,7 +51,6 @@ DeviceID = Modbus("Sinexcel_batt_inv_01")
 # polling_frequency = DeviceID.polling_freq()
 m = ModbusPollFunction(DeviceID)
 m.func()
-
 
 
 

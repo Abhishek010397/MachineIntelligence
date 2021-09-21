@@ -63,6 +63,7 @@ class redis_storage:
             key_add = key + ':' + k
             print(key_add)
             response = self.rts.get(key_add)
+            Logging.logger.info(response)
       except redis.RedisError as e:
          Logging.logger.exception({"error Code":111,"Error Desc":e})
          Logging.logger.exception(e)
@@ -71,6 +72,7 @@ class redis_storage:
          Logging.logger.exception(e)
       finally:
          return response
+
 
    def mget_modbus_data(self, value):
       """
@@ -83,7 +85,8 @@ class redis_storage:
 
       try:
          Logging.logger.info("{} function has been called".format("mget_modbus_data()"))
-         response=self.rts.mget([value], with_labels=True) #[DeviceID:Sinexcel_batt_inv_01]
+         response=self.rts.mget([value], with_labels=True)
+         Logging.logger.info(response)
       except redis.RedisError as e:
          Logging.logger.exception({"error Code":111,"Error Desc":e})
          Logging.logger.exception(e)
@@ -117,7 +120,3 @@ class redis_storage:
          Logging.logger.exception(e)
       finally:
          return response
-
-   def get_subsequent_data(self):
-      response = self.rts.mrange(1630776735386,1630776920829,filters=['DeviceID=Sinexcel_batt_inv_01'])
-      print(response)

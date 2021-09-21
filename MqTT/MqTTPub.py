@@ -4,7 +4,7 @@ from Logger.LoggerHandling import Logging
 from Redis_Storage.Time_Series import redis_storage
 from paho.mqtt import client as mqtt_client
 import argparse
-from MqTT.conf import broker, port,mqttpub_json
+from conf import broker, port,mqttpub_json
 
 class MqttPub:
 
@@ -64,8 +64,13 @@ class MqttPub:
             Logging.logger.info("{} function has been called".format("get_redis_data()"))
             c = redis_storage()
             data = c.mget_modbus_data(value)
-            Logging.logger.info(data)
-            return data
+            if(bool(data)==False):
+                Logging.logger.error({"****UNABLE TO RETRIEVE DATA FROM REDISTIMESERIES DATABASE****"})
+                Logging.logger.error({"PLEASE VERIFY IF DATA IS BEING WRITTEN IN REDISTIMESERIES!"})
+                exit()
+            else:    
+                Logging.logger.info(data)
+                return data
         except Exception as e:
             Logging.logger.exception(e)
 

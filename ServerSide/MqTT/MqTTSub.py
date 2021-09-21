@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import argparse
-from MqTT.conf import broker, port, mqttsub_json
+from conf import broker, port, mqttsub_json
 import json
 from Logger.LoggerHandling import Logging
 from InFluxDB.InFlux import InfluxDB
@@ -48,6 +48,22 @@ class MqTTSub:
         finally:
             f.close()
 
+    def get_dbname(self):
+        Logging.logger.info("{} function has been called".format("get_dbname()"))
+        try:
+            f = open(mqttsub_json, 'r')
+            data = json.load(f)
+            for key, value in data.items():
+                if (key.lower() == "tags"):
+                    for key, value in value.items():
+                        if (key.lower() == "dbname"):
+                            return value
+        except Exception as e:
+            Logging.logger.exception({"error Code": 112, "Error Desc": e})
+            Logging.logger.exception(e)
+        finally:
+            f.close()
+
     def on_message(self, client, userdata, message):
         Logging.logger.info("{} function has been called".format("on_message()"))
         Message=str(message.payload.decode("utf-8"))
@@ -55,7 +71,7 @@ class MqTTSub:
         Logging.logger.info('Message %s Recieved From Topic %s' % (Message,Topic))
         if message.retain == 1:
             Logging.logger.info("Message Retained")
-            dbname=''
+            dbname=self.get_dbname()
             c=InfluxDB(dbname)
             c.on_message_fetch(Message,dbname)
         else:
@@ -81,4 +97,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

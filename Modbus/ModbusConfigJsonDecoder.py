@@ -1,9 +1,11 @@
 import json
 from pymodbus.client.sync import ModbusSerialClient as ModbusClientRTU
 from Logger.LoggerHandling import Logging
+import sys
 from collections import deque
 from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.constants import Endian
+from ModbusConf import deviceid,devicesettings,devicetype,connectiontype,pollingrate
 
 class Modbusconfigjsondecoder:
 
@@ -40,7 +42,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid" and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "DeviceSettings"):
                                 value = v2[0]
@@ -73,7 +75,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid" and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "DeviceType"):
                                 value = v["DeviceType"]
@@ -107,7 +109,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid" and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "DeviceType"):
                                 value = v["DeviceType"]
@@ -141,7 +143,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid" and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "DeviceType"):
                                 value = v["DeviceType"]
@@ -174,7 +176,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid" and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "PollingRate"):
                                 return (int(v2.split()[0]))
@@ -233,7 +235,7 @@ class Modbusconfigjsondecoder:
                 port=str(device_setting_json_value['rtuPort']),
                 baudrate=int(device_setting_json_value['BaudRate']),
                 timeout=int(device_setting_json_value['timeout']),
-                parity=str(device_setting_json_value['Parity']),
+                parity=(str(device_setting_json_value['Parity'])).upper(),
                 stopbits=int(device_setting_json_value['StopBit']),
                 bytesize=int(device_setting_json_value['bytesize'])
             )
@@ -246,7 +248,6 @@ class Modbusconfigjsondecoder:
         finally:
             return (client)
             
-
     def getdevicename(self):
         """
             This function Loads the modbus_config.json file and returns the Device Name
@@ -262,7 +263,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid" and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "DeviceType"):
                                 value = v["DeviceType"]
@@ -439,7 +440,7 @@ class Modbusconfigjsondecoder:
             data = json.load(f)
             for k, v in data.items():
                 for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
+                    if(k1.lower() == "deviceid"and v1 == self.DeviceID):
                         for k2, v2 in v.items():
                             if(k2 == "DeviceType"):
                                 value = v["DeviceType"]
@@ -560,42 +561,62 @@ class Modbusconfigjsondecoder:
             :rtype: bool
 
         """
-        flag=0
-        value=0
+
         try:
             Logging.logger.info("{} function has been called".format("JsonValidation()"))
             f = open('modbus_config.json', 'r')
             data = json.load(f)
-            for k, v in data.items():
-                for k1, v1 in v.items():
-                    if(k1 == "DeviceID" and v1 == self.DeviceID):
-                        for k3,v3 in v.items():
-                            if(k3=="DeviceSettings" and v1 == self.DeviceID):
-                                flag=flag+1
-                                continue
-                            elif(k3=="PollingRate" and v1 == self.DeviceID):
-                                flag=flag+1
-                                continue
-                            elif(k3=="DeviceType" and v1 == self.DeviceID):
-                                value=str(v["DeviceType"])
-                                flag+=1
-                                continue
-                    
-            if(flag>=3):
+            value=0
+            d={"1":"deviceid","2":"devicesetting","3":"devicetype","4":"pollingrate"}
+            error_response=0
+            if(len(data)%2!=0):
+                Logging.logger.error("{} which is being called ".format("blocks not defined()"))
+                error_response=1
+            for k1,v1 in data.items():
                 flag=0
-                for k,v in data.items():
-                    if(k==str(value)):
-                        for k2,v2 in v.items():
-                            if(k2=="ConnType" and k==str(value)):
-                                flag+=1
-                            elif(k==str(value) and k2=="DeviceInfoBlock"):
-                                flag+=1
-                            elif(k==str(value) and k2=="UserDataBlock1"):
-                                flag+=1
-            if(flag==3):
-                return (True)
+                lst=[]
+                for k2,v2 in v1.items():
+                    if(k2==deviceid): 
+                        flag=1
+                        lst.append(flag)
+                    if(k2==devicesettings):
+                        flag=2
+                        lst.append(flag)
+                    if(k2==devicetype):
+                        value=str(v2)
+                        flag=3
+                        lst.append(flag)
+                    if(k2==pollingrate):
+                        flag=4
+                        lst.append(flag)
+                    else:
+                        if(flag<1):
+                            flag=0
+                if(flag==0):
+                    for k,v in data.items():
+                        if(value==0):
+                            value=k1
+                        if(k==value):
+                            for k1,v1 in v.items():
+                                if(k1==connectiontype):
+                                    break
+                            else:
+                                Logging.logger.error("connectiontype is absent in {}, please check once".format(value))    
+                                error_response=1 
+                                break
+                else:
+                    for k,v in d.items():
+                        if(int(k) in lst):
+                            continue
+                        else:
+                            Logging.logger.error({"{} Error".format(v):"{} is missing in json".format(v)})
+                            error_response=1
+                del lst
+
+            if(error_response==1):
+                return(False)
             else:
-                return (False)
+                return(True)
         except IOError:
             Logging.logger.exception(TypeError)
         except TypeError as e:
@@ -708,4 +729,8 @@ class Modbusconfigjsondecoder:
         builder.add_16bit_float(value)
         payload=builder.build()
         return(payload[0])
+
+
+        
+
         
