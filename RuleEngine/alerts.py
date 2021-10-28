@@ -129,7 +129,7 @@ class Alerts:
                     timestamp.append(unixTime+i*60)
                     get_data = self.mrangeDataRTS(keys,timestamp)
                     if len(get_data) == 3:
-                        print(get_data)
+                        return get_data
                         break
             elif length > 1 :
                 timestamp = []
@@ -175,8 +175,21 @@ def main():
     operators = operator.split(",")
     operator1 = operator1.split(",")
     if len(time) != 0:
+        key_value=[]
         times=time.split(",")
-        alert.convertUTCtoUnix(times,keys)
+        fetch_rts_data=alert.convertUTCtoUnix(times,keys)
+        print(fetch_rts_data)
+        for data in fetch_rts_data:
+            key_value.append(int(float(data)))
+        result = alert.compareOperations(key_value, thresholds, operators)
+        print(result)
+        idx, operator = alert.checkIndexOperator(operator1)
+        print("Index is", idx)
+        print("Operator is",operator)
+        and_output = alert.andOperations(result, idx, operator)
+        print(and_output)
+        or_output = alert.orOperations(operator1, and_output, result, idx)
+        print(or_output)
         #Operators Functions
     else:
         key = []
@@ -186,7 +199,8 @@ def main():
         result = alert.compareOperations(key, thresholds, operators)
         print(result)
         idx, operator = alert.checkIndexOperator(operator1)
-        print("Index And Operator", idx, operator)
+        print("Index",idx)
+        print("Operator",operator)
         and_output = alert.andOperations(result, idx, operator)
         print(and_output)
         or_output = alert.orOperations(operator1, and_output, result, idx)
